@@ -1,0 +1,45 @@
+<ion-header>
+  <ion-toolbar color="primary">
+    <ion-buttons slot="start">
+      <ion-back-button defaultHref="/home"></ion-back-button>
+    </ion-buttons>
+    <ion-title>Consultas</ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content color="bg-gray">
+  <ion-grid>
+    <ion-row>
+      <ion-col size="4" size-sm="2">
+        <div class="home-button">
+          <ion-card [routerDirection]="'root'" [routerLink]="'/consult-items'">
+            <div class="img-container" color="accent">
+              <img src="assets/solicitacao.png" alt="">
+            </div>
+          </ion-card>
+          <p>Produtos</p>
+        </div>
+      </ion-col>
+      <ion-col size="4" size-sm="2">
+        <div class="home-button">
+          <ion-card [routerDirection]="'root'" [routerLink]="'/consult-orders'">
+            <div class="img-container">
+              <img src="assets/cliente.png" alt="">
+            </div>
+          </ion-card>
+          <p>Pedidos de clientes</p>
+        </div>
+      </ion-col>
+      <ion-col size="4" size-sm="2">
+        <div class="home-button">
+          <ion-card [routerDirection]="'root'" [routerLink]="'/consult-customer-list'">
+            <div class="img-container">
+              <img src="assets/pedido.png" alt="">
+            </div>
+          </ion-card>
+          <p>Clientes bloqueados</p>
+        </div>
+      </ion-col>
+    </ion-row>
+  </ion-grid>
+</ion-content>

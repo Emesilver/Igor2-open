@@ -1,0 +1,55 @@
+<ion-header>
+  <ion-toolbar color="primary">
+    <ion-buttons slot="start">
+      <ion-back-button defaultHref="/order-general-form"></ion-back-button>
+    </ion-buttons>
+    <ion-title>{{title}}</ion-title>
+    <ion-buttons slot="end" *ngIf="orderHandleType!=2">
+        <ion-button (click)="add()">
+          <ion-icon name="add-circle"></ion-icon>
+        </ion-button>
+      </ion-buttons>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content>
+  <ion-list>
+    <ion-item-sliding *ngFor="let orderItemWrk of itens; let idx = index">
+      <ion-item (click)="edit(orderItemWrk)">
+        <ion-label>
+          #{{orderItemWrk?.codProErp}} - {{orderItemWrk?.descricao}}
+          <p>{{orderItemWrk?.qtd}} x
+            {{(orderItemWrk?.totalItem/orderItemWrk?.qtd)?.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' }) }}({{orderItemWrk?.precoUnitFat}}) =
+            {{orderItemWrk?.totalItem?.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}}</p>
+        </ion-label>
+        <ion-icon item-end name="play-back-outline" *ngIf="orderHandleType!=2"></ion-icon>
+      </ion-item>
+      <ion-item-options side="end" *ngIf="orderHandleType!=2">
+        <ion-button color="danger" (click)="remove(idx)">
+          <ion-icon name="trash"></ion-icon>
+          Remover
+        </ion-button>
+      </ion-item-options>
+    </ion-item-sliding>
+
+  </ion-list>
+  <!--p *ngIf="!orderItensVm || orderItensVm.length == 0" class="empty-message"-->
+  <p *ngIf="!itens || itens.length == 0" class="empty-message">
+    Nenhum item cadastrado.
+  </p>
+</ion-content>
+<ion-footer>
+  <ion-toolbar>
+    <ion-grid>
+      <ion-row>
+        <ion-col col-6>
+          <button ion-button class="btn btn-border" (click)="back()">ANTERIOR</button>
+        </ion-col>
+        <ion-col col-6>
+          <button ion-button class="btn btn-block" (click)="next()"
+            [disabled]="!itens || itens.length == 0">PRÓXIMO</button>
+        </ion-col>
+      </ion-row>
+    </ion-grid>
+  </ion-toolbar>
+</ion-footer>

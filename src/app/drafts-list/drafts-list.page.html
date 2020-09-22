@@ -1,0 +1,60 @@
+<ion-header>
+  <ion-toolbar color="primary">
+    <ion-buttons slot="start">
+      <ion-back-button defaultHref="/home"></ion-back-button>
+    </ion-buttons>
+    <ion-title>Rascunhos</ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content>
+  <div class="half-content">
+      <ion-list>
+          <ion-item-divider color="light">Pedidos</ion-item-divider>
+          <ion-item-sliding *ngFor="let draftOrder of orderDrafts">
+            <ion-item no-lines (click)="goOrderGeneralForm(draftOrder)">
+              <ion-label>
+                {{ draftOrder.desCli }}
+                <p>{{ draftOrder.dataPed | date:'dd/MM/yyyy' }} - {{ draftOrder.totalPedido?.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' }) }}</p>
+              </ion-label>
+              <ion-badge item-end color="warning">Rascunho</ion-badge>
+              <ion-icon item-end name="play-back-outline"></ion-icon>
+            </ion-item>
+            <ion-item-options side="end">
+                <ion-button color="danger" (click)="confirmRemoveDraft(draftOrder.codPedGuid, 1)">
+                  <ion-icon name="trash"></ion-icon>Remover
+                </ion-button>
+              </ion-item-options>
+          </ion-item-sliding>
+        </ion-list>
+        <p class="ion-padding" *ngIf="(!orderDrafts || orderDrafts.length == 0)" class="empty-message">
+          <br> Nenhum pedido como rascunho.
+        </p>
+  </div>
+  <div class="half-content">
+  <ion-list>
+    <ion-item-divider color="light">Clientes</ion-item-divider>
+    <ion-item-sliding *ngFor="let draft of customerDrafts">
+      <ion-item (click)="goCustomerForm(draft)">
+        <ion-label>
+          {{draft.cpfCnpj}} - {{draft.fantasia}}
+          <p>{{draft.razao}}</p>
+          <p>{{draft.cidade}} - {{draft.bairro}}</p>
+        </ion-label>
+        <ion-badge item-end color="warning">Rascunho</ion-badge>
+        <ion-icon item-end name="play-back-outline"></ion-icon>
+      </ion-item>
+      <ion-item-options side="end">
+        <ion-button color="danger" (click)="confirmRemoveDraft(draft.cliGuid, 2)">
+          <ion-icon name="trash"></ion-icon>Deletar
+        </ion-button>
+      </ion-item-options>
+    </ion-item-sliding>
+  </ion-list>
+  <p class="ion-padding" *ngIf="!customerDrafts || customerDrafts.length == 0" class="empty-message">
+    Nenhum cliente como rascunho.
+  </p>
+</div>
+<div class="space-fix"></div>
+</ion-content>
+<!--toolbar-tools></toolbar-tools-->

@@ -1,0 +1,17 @@
+<ion-content>
+  <img src="../../assets/close_red.png" alt="">
+  <h1>{{title}}</h1>
+
+  <ion-list *ngFor="let error of errors">
+    <ion-item text-wrap>
+      ✕ {{error}}
+    </ion-item>
+  </ion-list>
+
+</ion-content>
+
+<ion-footer>
+  <ion-toolbar>
+    <button ion-button class="btn btn-block" (click)="close()">VOLTAR</button>
+  </ion-toolbar>
+</ion-footer>

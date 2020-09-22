@@ -1,0 +1,282 @@
+<ion-header>
+  <ion-toolbar color="primary">
+    <ion-buttons slot="start">
+      <ion-back-button defaultHref="/home"></ion-back-button>
+    </ion-buttons>
+    <ion-title>Novo cliente</ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content>
+  <form [formGroup]="customerForm">
+    <ion-list>
+      <ion-row>
+        <ion-col>
+          <ion-item>
+            <div class="item-inner">
+              <div class="item-wrapper">
+                <ion-label stacked>Documento (CPF ou CNPJ)</ion-label>
+                <ion-input type="tel" [mask]="'document'" (ionBlur)="saveOnBlur($event);validateDocument();"
+                  formControlName="cpfCnpj"></ion-input>
+                <ion-label error
+                  *ngIf="!customerForm.controls.cpfCnpj.valid && (customerForm.controls.cpfCnpj.dirty || submitAttempt)">
+                  <ion-icon name="information-circle"></ion-icon>
+                  Documento obrigatório
+                </ion-label>
+                <ion-label error *ngIf="!validDocument">
+                  <ion-icon name="information-circle"></ion-icon>
+                  Documento inválido
+                </ion-label>
+              </div>
+            </div>
+          </ion-item>
+        </ion-col>
+      </ion-row>
+      <ion-row>
+        <ion-col>
+          <ion-item>
+            <div class="item-inner">
+              <div class="item-wrapper">
+                <ion-label stacked>Nome fantasia</ion-label>
+                <ion-input type="text" (ionBlur)="saveOnBlur($event)" formControlName="fantasia"></ion-input>
+                <ion-label error
+                  *ngIf="!customerForm.controls.fantasia.valid && (customerForm.controls.fantasia.dirty || submitAttempt)">
+                  <ion-icon name="information-circle"></ion-icon>
+                  Nome fantasia é obrigatório
+                </ion-label>
+              </div>
+            </div>
+          </ion-item>
+        </ion-col>
+      </ion-row>
+      <ion-row>
+        <ion-col>
+          <ion-item>
+            <div class="item-inner">
+              <div class="item-wrapper">
+                <ion-label stacked>Razão Social</ion-label>
+                <ion-input type="text" (ionBlur)="saveOnBlur($event)" formControlName="razao"></ion-input>
+              </div>
+            </div>
+          </ion-item>
+        </ion-col>
+      </ion-row>
+      <ion-row>
+        <ion-col>
+          <ion-item>
+            <div class="item-inner">
+              <div class="item-wrapper">
+                <ion-label stacked>Nome contato</ion-label>
+                <ion-input type="text" (ionBlur)="saveOnBlur($event)" formControlName="contato1"></ion-input>
+                <ion-label error
+                  *ngIf="!customerForm.controls.contato1.valid && (customerForm.controls.contato1.dirty || submitAttempt)">
+                  <ion-icon name="information-circle"></ion-icon>
+                  Nome do contato é obrigatório
+                </ion-label>
+              </div>
+            </div>
+          </ion-item>
+        </ion-col>
+      </ion-row>
+      <ion-row>
+        <ion-col>
+          <ion-item>
+            <div class="item-inner">
+              <div class="item-wrapper">
+                <ion-label stacked>E-mail do cliente</ion-label>
+                <ion-input type="text" (ionBlur)="saveOnBlur($event)" formControlName="emailCli"></ion-input>
+              </div>
+            </div>
+          </ion-item>
+        </ion-col>
+      </ion-row>
+      <ion-row>
+        <ion-col>
+          <ion-item>
+            <div class="item-inner">
+              <div class="item-wrapper">
+                <ion-label stacked>E-mail financeiro</ion-label>
+                <ion-input type="text" (ionBlur)="saveOnBlur($event)" formControlName="emailFin"></ion-input>
+              </div>
+            </div>
+          </ion-item>
+        </ion-col>
+      </ion-row>
+      <ion-row>
+        <ion-col>
+          <ion-item>
+            <div class="item-inner">
+              <div class="item-wrapper">
+                <ion-label stacked>E-mail fiscal</ion-label>
+                <ion-input type="text" (ionBlur)="saveOnBlur($event)" formControlName="emailFis"></ion-input>
+              </div>
+            </div>
+          </ion-item>
+        </ion-col>
+      </ion-row>
+      <ion-row>
+        <ion-col>
+          <ion-item>
+            <div class="item-inner">
+              <div class="item-wrapper">
+                <ion-label stacked>Telefone do contato</ion-label>
+                <ion-input type="tel" [mask]="'telephone'" (ionBlur)="saveOnBlur($event)"
+                  formControlName="foneContato1">
+                </ion-input>
+                <ion-label error
+                  *ngIf="!customerForm.controls.foneContato1.valid && (customerForm.controls.foneContato1.dirty || submitAttempt)">
+                  <ion-icon name="information-circle"></ion-icon>
+                  Telefone do contato é obrigatório
+                </ion-label>
+              </div>
+            </div>
+          </ion-item>
+        </ion-col>
+      </ion-row>
+      <ion-row>
+        <ion-col>
+          <ion-item>
+            <div class="item-inner">
+              <div class="item-wrapper">
+                <ion-label stacked>Telefone fixo da empresa</ion-label>
+                <ion-input type="tel" [mask]="'telephone'" (ionBlur)="saveOnBlur($event)" formControlName="foneCli">
+                </ion-input>
+                <ion-label error
+                  *ngIf="!customerForm.controls.foneCli.valid && (customerForm.controls.foneCli.dirty || submitAttempt)">
+                  <ion-icon name="information-circle"></ion-icon>
+                  Telefone fixo é obrigatório
+                </ion-label>
+              </div>
+            </div>
+          </ion-item>
+        </ion-col>
+      </ion-row>
+      <ion-row>
+        <ion-col>
+          <ion-item>
+            <div class="item-inner">
+              <div class="item-wrapper">
+                <ion-label stacked>CEP</ion-label>
+                <ion-input type="tel" [mask]="'00000-000'" (ionBlur)="saveOnBlur($event)" formControlName="cep">
+                </ion-input>
+              </div>
+            </div>
+          </ion-item>
+        </ion-col>
+      </ion-row>
+      <ion-row>
+        <ion-col>
+          <ion-item>
+            <div class="item-inner">
+              <div class="item-wrapper">
+                <ion-label stacked>UF</ion-label>
+                <ion-input [hidden]="true" formControlName="uf"></ion-input>
+                <ion-input [ngModel]="stateName" [ngModelOptions]="{standalone:true}" type="text"
+                  placeholder="Selecione um estado" disabled class="state" (click)="openStatePage()"></ion-input>
+                <ion-label error
+                  *ngIf="!customerForm.controls.uf.valid && (customerForm.controls.uf.dirty || submitAttempt)">
+                  <ion-icon name="information-circle"></ion-icon>
+                  UF é obrigatório
+                </ion-label>
+              </div>
+            </div>
+          </ion-item>
+        </ion-col>
+      </ion-row>
+      <ion-row>
+        <ion-col>
+          <ion-item>
+            <div class="item-inner">
+              <div class="item-wrapper">
+                <ion-label stacked>Cidade</ion-label>
+                <ion-input [hidden]="true" formControlName="cidade"></ion-input>
+                <ion-input [ngModel]="cityName" [ngModelOptions]="{standalone:true}" type="text"
+                  placeholder="Selecione uma cidade" disabled class="state" (click)="openCityPage()"></ion-input>
+                <ion-label error
+                  *ngIf="!customerForm.controls.cidade.valid && (customerForm.controls.cidade.dirty || submitAttempt)">
+                  <ion-icon name="information-circle"></ion-icon>
+                  Cidade é obrigatório
+                </ion-label>
+              </div>
+            </div>
+          </ion-item>
+        </ion-col>
+      </ion-row>
+      <ion-row>
+        <ion-col>
+          <ion-item>
+            <div class="item-inner">
+              <div class="item-wrapper">
+                <ion-label stacked>Logradouro</ion-label>
+                <ion-input type="text" (ionBlur)="saveOnBlur($event)" formControlName="endereco"></ion-input>
+                <ion-label error
+                  *ngIf="!customerForm.controls.endereco.valid && (customerForm.controls.endereco.dirty || submitAttempt)">
+                  <ion-icon name="information-circle"></ion-icon>
+                  Logradouro é obrigatório
+                </ion-label>
+              </div>
+            </div>
+          </ion-item>
+        </ion-col>
+      </ion-row>
+      <ion-row>
+        <ion-col>
+          <ion-item>
+            <div class="item-inner">
+              <div class="item-wrapper">
+                <ion-label stacked>Bairro</ion-label>
+                <ion-input type="text" (ionBlur)="saveOnBlur($event)" formControlName="bairro"></ion-input>
+                <ion-label error
+                  *ngIf="!customerForm.controls.bairro.valid && (customerForm.controls.bairro.dirty || submitAttempt)">
+                  <ion-icon name="information-circle"></ion-icon>
+                  Bairro é obrigatório
+                </ion-label>
+              </div>
+            </div>
+          </ion-item>
+        </ion-col>
+      </ion-row>
+      <ion-row>
+        <ion-col>
+          <ion-item>
+            <div class="item-inner">
+              <div class="item-wrapper">
+                <ion-label stacked>Nome da rede</ion-label>
+                <ion-input type="text" (ionBlur)="saveOnBlur($event)" formControlName="rede"></ion-input>
+              </div>
+            </div>
+          </ion-item>
+        </ion-col>
+      </ion-row>
+
+      <ion-row>
+        <ion-col>
+          <ion-item>
+            <div class="item-inner">
+              <div class="item-wrapper">
+                <ion-label stacked>Observações</ion-label>
+                <ion-input type="text" (ionBlur)="saveOnBlur($event)" formControlName="obs"></ion-input>
+              </div>
+            </div>
+          </ion-item>
+        </ion-col>
+      </ion-row>
+    </ion-list>
+  </form>
+</ion-content>
+
+<ion-footer>
+  <ion-toolbar>
+    <ion-grid>
+      <ion-row>
+        <ion-col col-6>
+          <button ion-button class="btn btn-border" (click)="validate()"
+            [disabled]="!this.global.getProperty('online')">VALIDAR</button>
+        </ion-col>
+        <ion-col col-6>
+          <button ion-button class="btn btn-block" (click)="save()">ENVIAR</button>
+        </ion-col>
+      </ion-row>
+    </ion-grid>
+  </ion-toolbar>
+</ion-footer>

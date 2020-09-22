@@ -1,0 +1,60 @@
+<ion-header>
+  <ion-toolbar color="primary">
+    <ion-buttons slot="end">
+      <ion-button (click)="close()">
+        <ion-icon name="close-outline"></ion-icon>
+      </ion-button>
+    </ion-buttons>
+    <ion-title>Solicitar limite</ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content>
+  <ion-list>
+    <ion-row>
+      <ion-col>
+        <ion-item>
+          <div class="item-inner">
+            <div class="item-wrapper">
+              <ion-label stacked>Limite total</ion-label>
+              <ion-input type="text" [readonly]="true" [ngModel]="limiteTotal"></ion-input>
+            </div>
+          </div>
+        </ion-item>
+      </ion-col>
+      <ion-col>
+        <ion-item>
+          <div class="item-inner">
+            <div class="item-wrapper">
+              <ion-label stacked>Crédito</ion-label>
+              <ion-input type="text" [readonly]="true" [ngModel]="credito"></ion-input>
+            </div>
+          </div>
+        </ion-item>
+      </ion-col>
+    </ion-row>
+    <ion-row>
+      <ion-col>
+        <ion-item>
+          <div class="item-inner">
+            <div class="item-wrapper">
+              <ion-label stacked>Novo Limite</ion-label>
+              <ion-input type="number" [(ngModel)]="novoLimite" (change)="onlyNumbers()"></ion-input>
+            </div>
+          </div>
+        </ion-item>
+      </ion-col>
+    </ion-row>
+  </ion-list>
+</ion-content>
+<ion-footer>
+  <ion-toolbar>
+    <ion-grid>
+      <ion-row class="ion-justify-content-end">
+        <ion-col col-6>
+          <button ion-button class="btn btn-block" (click)="requestLimit()">SOLICITAR</button>
+        </ion-col>
+      </ion-row>
+    </ion-grid>
+  </ion-toolbar>
+</ion-footer>

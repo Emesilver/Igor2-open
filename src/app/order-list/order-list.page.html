@@ -1,0 +1,54 @@
+<ion-header>
+  <ion-toolbar color="primary">
+    <ion-buttons slot="start">
+      <ion-back-button defaultHref="/home"></ion-back-button>
+    </ion-buttons>
+    <ion-title>Pedidos</ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content>
+  <ion-list>
+    <ion-item-sliding *ngFor="let draftOrder of draftOrders" no-lines>
+      <ion-item (click)="goToOrderPage(false, draftOrder)">
+        <ion-label>
+          {{draftOrder.desCli}}
+          <p>{{ draftOrder.dataPed | date:'dd/MM/yyyy' }} -
+            {{ draftOrder.totalPedido?.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' }) }}</p>
+        </ion-label>
+        <ion-badge item-end color="warning">Rascunho</ion-badge>
+        <ion-icon item-end name="play-back-outline"></ion-icon>
+      </ion-item>
+      <ion-item-options side="end">
+        <ion-button color="danger" (click)="confirmRemoveDraft(draftOrder.codPedGuid)">
+          <ion-icon name="trash"></ion-icon>Deletar
+        </ion-button>
+      </ion-item-options>
+    </ion-item-sliding>
+  </ion-list>
+
+  <ion-virtual-scroll [items]="ordersFiltered">
+    <ion-item *virtualItem="let order" (click)="goToOrderPage(true, order)">
+      <ion-label>
+        {{order.codPedErp}} - {{order.desCli}}
+        <p>{{ order.dataPed | date:'dd/MM/yyyy' }} -
+          {{ order.totalPedido?.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' }) }}</p>
+      </ion-label>
+      <ion-badge *ngIf="order.statusPed=='ENV'" item-end color="light">Enviado</ion-badge>
+      <ion-badge *ngIf="order.statusPed=='BLO'" item-end color="danger">Bloqueado</ion-badge>
+      <ion-badge *ngIf="order.statusPed=='LIB'" item-end color="primary">Liberado</ion-badge>
+      <ion-badge *ngIf="order.statusPed=='FAT'" item-end color="success">{{order.notaErp}} {{order.serieErp}}
+      </ion-badge>
+    </ion-item>
+    <!--/ion-list-->
+  </ion-virtual-scroll>
+
+  <p *ngIf="(!ordersFiltered || ordersFiltered.length == 0) && (!draftOrders || draftOrders.length == 0)"
+    class="empty-message">
+    <!-- <img src="http://simpleicon.com/wp-content/uploads/sad.png" width="100" height="100" /> -->
+    <br> Nenhum item cadastrado.
+  </p>
+  <div class="space-fix"></div>
+
+</ion-content>
+<toolbar-tools></toolbar-tools>

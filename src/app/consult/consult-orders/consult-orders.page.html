@@ -1,0 +1,40 @@
+<ion-header>
+  <ion-toolbar color="primary">
+    <ion-buttons slot="start">
+      <ion-back-button defaultHref="/home"></ion-back-button>
+    </ion-buttons>
+    <ion-title>Consulta de Pedidos</ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content>
+  <ion-item>
+    <!--div class="item-inner"-->
+      <!--div class="item-wrapper"-->
+        <ion-input [ngModel]="customerName" type="text" placeholder="Selecione um cliente" readonly class="state"
+          (click)="doSelectCustomer()"></ion-input>
+      <!--/div-->
+    <!--/div-->
+  </ion-item>
+
+  <ion-virtual-scroll [items]="ordersFiltered">
+    <ion-item *virtualItem="let order" (click)="goToOrderPage(true, order)">
+      <ion-label>
+        {{order.codPedErp}} - {{order.desCli}}
+        <p>{{ order.dataPed | date:'dd/MM/yyyy' }} -
+          {{ order.totalPedido?.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' }) }}</p>
+      </ion-label>
+      <ion-badge *ngIf="order.statusPed=='ENV'" item-end color="light">Enviado</ion-badge>
+      <ion-badge *ngIf="order.statusPed=='BLO'" item-end color="danger">Bloqueado</ion-badge>
+      <ion-badge *ngIf="order.statusPed=='LIB'" item-end color="primary">Liberado</ion-badge>
+      <ion-badge *ngIf="order.statusPed=='FAT'" item-end color="success">{{order.notaErp}} {{order.serieErp}}
+      </ion-badge>
+    </ion-item>
+  </ion-virtual-scroll>
+
+  <ion-button fill="solid">
+    <ion-icon slot="end" name="albums-outline"></ion-icon>
+    Quantidade de pedidos {{ordersFiltered?.length}}
+  </ion-button>
+
+</ion-content>

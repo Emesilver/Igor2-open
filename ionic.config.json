@@ -1,0 +1,7 @@
+{
+  "name": "silico-igor",
+  "integrations": {
+    "cordova": {}
+  },
+  "type": "angular"
+}

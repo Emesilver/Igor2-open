@@ -1,0 +1,35 @@
+<ion-header>
+  <ion-toolbar color="primary">
+    <ion-buttons slot="start">
+      <ion-back-button defaultHref="/home"></ion-back-button>
+    </ion-buttons>
+
+    <ion-title>Consulta de produtos</ion-title>
+
+  </ion-toolbar>
+
+  <ion-toolbar color="primary">
+    <ion-searchbar (ionInput)="filterItems($event)" placeholder="Pesquisar"></ion-searchbar>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content>
+  <ion-list>
+    <ion-item *ngFor="let item of itemsRendered">
+      <ion-label>
+        {{item.codProErp}}-{{item.descricao}}
+        <p>{{item.unidade}}</p>
+      </ion-label>
+    </ion-item>
+  </ion-list>
+  <ion-infinite-scroll threshold="100px" (ionInfinite)="loadData($event)">
+    <ion-infinite-scroll-content loadingSpinner="crescent" loadingText="Carregando mais itens">
+    </ion-infinite-scroll-content>
+  </ion-infinite-scroll>
+
+    <ion-button fill="solid">
+      <ion-icon slot="end" name="albums-outline"></ion-icon>
+      Quantidade de produtos filtrados {{itemsRendered.length}}
+    </ion-button>
+
+</ion-content>

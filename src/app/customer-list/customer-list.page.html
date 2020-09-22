@@ -1,0 +1,74 @@
+<ion-header>
+  <ion-toolbar color="primary">
+    <ion-buttons slot="start">
+      <ion-back-button defaultHref="/home"></ion-back-button>
+    </ion-buttons>
+    <ion-title>Clientes</ion-title>
+    <ion-buttons slot="end">
+      <ion-button [routerDirection]="'root'" [routerLink]="'/customer-form'">
+        <ion-icon name="add-circle"></ion-icon>
+      </ion-button>
+    </ion-buttons>
+  </ion-toolbar>
+  <ion-toolbar color="primary">
+    <ion-searchbar (ionInput)="getItems($event)" placeholder="Pesquisar"></ion-searchbar>
+  </ion-toolbar>
+</ion-header>
+<ion-content>
+  <ion-list>
+    <ion-item-sliding *ngFor="let draft of drafts">
+      <ion-item (click)="goTo('/customer-form', draft)">
+        <ion-label>
+          {{draft.cpfCnpj}} - {{draft.fantasia}}
+          <p>{{draft.razao}}</p>
+          <p>{{draft.cidade}} - {{draft.bairro}}</p>
+        </ion-label>
+        <ion-badge item-end color="warning">Rascunho</ion-badge>
+        <ion-icon name="play-back-outline"></ion-icon>
+      </ion-item>
+      <ion-item-options side="end">
+        <ion-button color="danger" (click)="confirmRemoveDraft(draft.cliGuid)">
+          <ion-icon name="trash"></ion-icon>Deletar
+        </ion-button>
+        <!-- <button ion-button color="danger" (click)="confirmRemoveDraft(draft.cliGuid)">Deletar</button> -->
+      </ion-item-options>
+    </ion-item-sliding>
+  </ion-list>
+  <ion-list>
+    <ion-item-sliding *ngFor="let customer of customersRendered">
+      <ion-item (click)="goTo('/customer-view', customer)">
+        <ion-label>
+          {{customer.cpfCnpj}} - {{customer.fantasia}}
+          <p>{{customer.razao}}</p>
+          <p>{{customer.cidade}} - {{customer.bairro}}</p>
+        </ion-label>
+        <ion-badge *ngIf="customer.codCliErp == null || customer.codCliErp == ''" item-end color="light">
+          Em análise
+        </ion-badge>
+        <ion-icon name="play-back-outline"></ion-icon>
+      </ion-item>
+      <ion-item-options side="end">
+        <ion-button color="accent" (click)="newOrder('/order-general-form', customer)">
+          <ion-icon name="add-outline"></ion-icon>Pedido
+        </ion-button>
+        <ion-button color="dark" (click)="openNavigator(customer)">
+          <ion-icon name="navigate-outline"></ion-icon>Navegar
+        </ion-button>
+        <ion-button color="success" (click)="callCustomer(customer)">
+          <ion-icon name="call-outline"></ion-icon>Ligar
+        </ion-button>
+      </ion-item-options>
+    </ion-item-sliding>
+  </ion-list>
+  <ion-infinite-scroll threshold="100px" (ionInfinite)="loadData($event)">
+    <ion-infinite-scroll-content
+      loadingSpinner="crescent"
+      loadingText="Carregando mais clientes">
+    </ion-infinite-scroll-content>
+  </ion-infinite-scroll>
+  <p *ngIf="!customers || customers.length == 0" class="empty-message">
+    Nenhum cliente cadastrado.
+  </p>
+  <div class="space-fix"></div>
+</ion-content>
+<toolbar-tools></toolbar-tools>

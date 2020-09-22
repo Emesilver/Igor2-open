@@ -1,0 +1,302 @@
+<ion-header>
+  <ion-toolbar color="primary">
+    <ion-buttons slot="start">
+      <ion-back-button defaultHref="/customer-list"></ion-back-button>
+    </ion-buttons>
+    <ion-title>Cliente</ion-title>
+  </ion-toolbar>
+</ion-header>
+<ion-segment>
+  <ion-segment-button value="general" (click)="moveToTop()">
+    <ion-label>Geral</ion-label>
+  </ion-segment-button>
+  <ion-segment-button value="historic" (click)="moveToBottom()">
+    <ion-label>Histórico</ion-label>
+  </ion-segment-button>
+</ion-segment>
+
+<ion-content>
+  <form [formGroup]="customerForm">
+    <ion-list>
+      <ion-row>
+        <ion-col>
+          <ion-item>
+            <div class="item-inner">
+              <div class="item-wrapper">
+                <ion-label stacked>Documento</ion-label>
+                <ion-input type="tel" [readonly]="true" formControlName="cpfCnpj"></ion-input>
+              </div>
+            </div>
+          </ion-item>
+        </ion-col>
+      </ion-row>
+
+      <ion-row>
+        <ion-col>
+          <ion-item>
+            <div class="item-inner">
+              <div class="item-wrapper">
+                <ion-label stacked>Nome fantasia</ion-label>
+                <ion-input type="text" [readonly]="true" formControlName="fantasia"></ion-input>
+              </div>
+            </div>
+          </ion-item>
+        </ion-col>
+      </ion-row>
+
+      <ion-row>
+        <ion-col>
+          <ion-item>
+            <div class="item-inner">
+              <div class="item-wrapper">
+                <ion-label stacked>Razão Social</ion-label>
+                <ion-input type="text" [readonly]="true" formControlName="razao"></ion-input>
+              </div>
+            </div>
+          </ion-item>
+        </ion-col>
+      </ion-row>
+      <ion-row>
+        <ion-col>
+          <ion-item>
+            <div class="item-inner">
+              <div class="item-wrapper">
+                <ion-label stacked>Nome contato</ion-label>
+                <ion-input type="text" [readonly]="true" formControlName="contato1"></ion-input>
+              </div>
+            </div>
+          </ion-item>
+        </ion-col>
+      </ion-row>
+      <ion-row>
+        <ion-col>
+          <ion-item>
+            <div class="item-inner">
+              <div class="item-wrapper">
+                <ion-label stacked>Telefone do contato</ion-label>
+                <ion-input type="tel" [readonly]="true" formControlName="foneContato1"></ion-input>
+              </div>
+            </div>
+          </ion-item>
+        </ion-col>
+      </ion-row>
+      <ion-row>
+        <ion-col>
+          <ion-item>
+            <div class="item-inner">
+              <div class="item-wrapper">
+                <ion-label stacked>Telefone fixo cliente</ion-label>
+                <ion-input type="tel" [readonly]="true" formControlName="foneCli"></ion-input>
+              </div>
+            </div>
+          </ion-item>
+        </ion-col>
+      </ion-row>
+
+      <ion-row>
+        <ion-col>
+          <ion-item>
+            <div class="item-inner">
+              <div class="item-wrapper">
+                <ion-label stacked>E-mail do cliente</ion-label>
+                <ion-input type="text" [readonly]="true" formControlName="emailCli">
+                </ion-input>
+              </div>
+            </div>
+          </ion-item>
+        </ion-col>
+      </ion-row>
+
+      <ion-row>
+        <ion-col>
+          <ion-item>
+            <div class="item-inner">
+              <div class="item-wrapper">
+                <ion-label stacked>E-mail financeiro</ion-label>
+                <ion-input type="text" [readonly]="true" formControlName="emailFin">
+                </ion-input>
+              </div>
+            </div>
+          </ion-item>
+        </ion-col>
+      </ion-row>
+
+      <ion-row>
+        <ion-col>
+          <ion-item>
+            <div class="item-inner">
+              <div class="item-wrapper">
+                <ion-label stacked>E-mail fiscal</ion-label>
+                <ion-input type="text" [readonly]="true" formControlName="emailFis">
+                </ion-input>
+              </div>
+            </div>
+          </ion-item>
+        </ion-col>
+      </ion-row>
+
+      <ion-row>
+        <ion-col>
+          <ion-item>
+            <div class="item-inner">
+              <div class="item-wrapper">
+                <ion-label stacked>CEP</ion-label>
+                <ion-input type="tel" [readonly]="true" formControlName="cep"></ion-input>
+              </div>
+            </div>
+          </ion-item>
+        </ion-col>
+      </ion-row>
+      <ion-row>
+        <ion-col col-sm-3>
+          <ion-item>
+            <div class="item-inner">
+              <div class="item-wrapper">
+                <ion-label stacked>UF</ion-label>
+                <ion-input [readonly]="true" formControlName="uf"></ion-input>
+              </div>
+            </div>
+          </ion-item>
+        </ion-col>
+        <ion-col col-sm-9>
+          <ion-item>
+            <div class="item-inner">
+              <div class="item-wrapper">
+                <ion-label stacked>Cidade</ion-label>
+                <ion-input [readonly]="true" formControlName="cidade"></ion-input>
+              </div>
+            </div>
+          </ion-item>
+        </ion-col>
+      </ion-row>
+      <ion-row>
+        <ion-col>
+          <ion-item>
+            <div class="item-inner">
+              <div class="item-wrapper">
+                <ion-label stacked>Logradouro</ion-label>
+                <ion-input type="text" [readonly]="true" formControlName="endereco"></ion-input>
+              </div>
+            </div>
+          </ion-item>
+        </ion-col>
+      </ion-row>
+      <ion-row>
+        <ion-col>
+          <ion-item>
+            <div class="item-inner">
+              <div class="item-wrapper">
+                <ion-label stacked>Bairro</ion-label>
+                <ion-input type="text" [readonly]="true" formControlName="bairro"></ion-input>
+              </div>
+            </div>
+          </ion-item>
+        </ion-col>
+      </ion-row>
+      <ion-row>
+        <ion-col>
+          <ion-item>
+            <div class="item-inner">
+              <div class="item-wrapper">
+                <ion-label stacked>Limite total</ion-label>
+                <ion-input type="text" [readonly]="true" formControlName="limiteTotal"></ion-input>
+              </div>
+            </div>
+          </ion-item>
+        </ion-col>
+        <ion-col>
+          <ion-item>
+            <div class="item-inner">
+              <div class="item-wrapper">
+                <ion-label stacked>Crédito</ion-label>
+                <ion-input type="text" [readonly]="true" formControlName="credito"></ion-input>
+              </div>
+            </div>
+          </ion-item>
+        </ion-col>
+      </ion-row>
+      <ion-row>
+        <ion-col>
+          <ion-item>
+            <div class="item-inner">
+              <div class="item-wrapper">
+                <ion-label stacked>Observações</ion-label>
+                <ion-input type="text" [readonly]="true" formControlName="obs"></ion-input>
+              </div>
+            </div>
+          </ion-item>
+        </ion-col>
+      </ion-row>
+    </ion-list>
+  </form>
+  <ion-list [hidden]="view !== 'historic'">
+    <ion-row>
+      <ion-col col-6 class="form-col">
+        <ion-item>
+          <div class="item-inner">
+            <div class="item-wrapper">
+              <ion-label stacked>Última compra</ion-label>
+              <ion-input type="text" readonly [ngModel]="lastOrderDataPedFormatted"></ion-input>
+            </div>
+          </div>
+        </ion-item>
+      </ion-col>
+      <ion-col col-6 class="form-col">
+        <ion-item>
+          <div class="item-inner">
+            <div class="item-wrapper">
+              <ion-label stacked>Valor</ion-label>
+              <ion-input type="text" readonly [ngModel]="lastOrderTotalPedidoFormatted"></ion-input>
+            </div>
+          </div>
+        </ion-item>
+      </ion-col>
+    </ion-row>
+    <ion-row>
+      <ion-col col-6 class="form-col">
+        <ion-item>
+          <div class="item-inner">
+            <div class="item-wrapper">
+              <ion-label stacked>Penúltima compra</ion-label>
+              <ion-input type="text" readonly [ngModel]="penulOrderDataPedFormatted"></ion-input>
+            </div>
+          </div>
+        </ion-item>
+      </ion-col>
+      <ion-col col-6 class="form-col">
+        <ion-item>
+          <div class="item-inner">
+            <div class="item-wrapper">
+              <ion-label stacked>Valor</ion-label>
+              <ion-input type="text" readonly [ngModel]="penulOrderTotalPedidoFormatted"></ion-input>
+            </div>
+          </div>
+        </ion-item>
+      </ion-col>
+    </ion-row>
+    <ion-row>
+      <ion-col col-12 class="form-col">
+        <ion-item>
+          <div class="item-inner">
+            <div class="item-wrapper">
+              <ion-label stacked>Contato</ion-label>
+              <ion-input type="text" readonly></ion-input>
+            </div>
+          </div>
+        </ion-item>
+      </ion-col>
+    </ion-row>
+  </ion-list>
+</ion-content>
+
+<ion-footer>
+  <ion-toolbar>
+    <ion-grid>
+      <ion-row>
+        <ion-col>
+          <button ion-button class="btn btn-block" (click)="edit()">ALTERAR</button>
+        </ion-col>
+      </ion-row>
+    </ion-grid>
+  </ion-toolbar>
+</ion-footer>

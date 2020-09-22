@@ -1,0 +1,210 @@
+<ion-header>
+  <ion-toolbar color="primary">
+    <ion-buttons slot="start">
+      <ion-back-button defaultHref="/order-items-form"></ion-back-button>
+    </ion-buttons>
+    <ion-title>{{title}}</ion-title>
+    <ion-buttons slot="end">
+      <ion-button (click)="close()">
+        <ion-icon name="close"></ion-icon>
+      </ion-button>
+    </ion-buttons>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content color="bg-grey">
+  <ion-list>
+    <ion-row>
+      <ion-col>
+        <ion-item>
+          <div class="item-inner">
+            <div class="item-wrapper">
+              <ion-label stacked>Cliente</ion-label>
+              <ion-input [ngModel]="customerName" type="text" placeholder="Selecione um cliente" readonly class="state"
+                (click)="selectCustomer()"></ion-input>
+            </div>
+          </div>
+        </ion-item>
+      </ion-col>
+    </ion-row>
+    <ion-row>
+      <ion-col>
+        <ion-item>
+          <div class="item-inner">
+            <div class="item-wrapper">
+              <ion-label stacked>Plano de pagamento</ion-label>
+              <ion-select (ionChange)="saveOnBlur()" [disabled]="isView" placeholder="Selecione um plano de pagamento"
+                [(ngModel)]="paymentPlan">
+                <ion-select-option value="{{paymentPlan.codPlaErp}}" *ngFor="let paymentPlan of paymentPlans">
+                  {{paymentPlan.desPlano}}</ion-select-option>
+              </ion-select>
+            </div>
+          </div>
+        </ion-item>
+      </ion-col>
+    </ion-row>
+    <ion-row>
+      <ion-col>
+        <ion-item>
+          <div class="item-inner">
+            <div class="item-wrapper">
+              <ion-label stacked>Observações</ion-label>
+              <ion-textarea [(ngModel)]="obs" (ionChange)="saveOnBlur()" [readonly]="isView"></ion-textarea>
+            </div>
+          </div>
+        </ion-item>
+      </ion-col>
+    </ion-row>
+    <ion-row>
+      <ion-col col-6>
+        <ion-item>
+          <div class="item-inner">
+            <div class="item-wrapper">
+              <ion-label stacked>Pedido cliente</ion-label>
+              <ion-input type="text" [(ngModel)]="customerOrder" (ionChange)="saveOnBlur()" [readonly]="isView"
+                maxlength="10"></ion-input>
+            </div>
+          </div>
+        </ion-item>
+      </ion-col>
+      <ion-col col-6>
+        <ion-item>
+          <div class="item-inner">
+            <div class="item-wrapper">
+              <ion-label stacked>Data de entrega</ion-label>
+              <ion-datetime displayFormat="DD/MM/YYYY" (ionChange)="saveOnBlur()" [readonly]="isView"
+                [(ngModel)]="deliveryDate" min="2017" max="2030-10-31" cancelText="Cancelar" doneText="Confirmar">
+              </ion-datetime>
+            </div>
+          </div>
+        </ion-item>
+      </ion-col>
+    </ion-row>
+  </ion-list>
+  <ion-list-header>
+    Informações dos itens
+  </ion-list-header>
+  <ion-list>
+    <ion-grid>
+      <ion-row>
+        <ion-col col-6 class="form-col">
+          <ion-item>
+            <div class="item-inner">
+              <div class="item-wrapper">
+                <ion-label stacked>Qnt itens</ion-label>
+                <ion-input type="text" readonly [ngModel]="amountItens"></ion-input>
+              </div>
+            </div>
+          </ion-item>
+        </ion-col>
+        <ion-col col-6 class="form-col">
+          <ion-item>
+            <div class="item-inner">
+              <div class="item-wrapper">
+                <ion-label stacked>Qnt total</ion-label>
+                <ion-input type="text" readonly [ngModel]="amountTotalItens"></ion-input>
+              </div>
+            </div>
+          </ion-item>
+        </ion-col>
+      </ion-row>
+      <ion-row>
+        <ion-col col-6 class="form-col">
+          <ion-item>
+            <div class="item-inner">
+              <div class="item-wrapper">
+                <ion-label stacked>Desconto itens %</ion-label>
+                <ion-input type="text" readonly [ngModel]="discountItenPercent"></ion-input>
+              </div>
+            </div>
+          </ion-item>
+        </ion-col>
+        <ion-col col-6 class="form-col">
+          <ion-item>
+            <div class="item-inner">
+              <div class="item-wrapper">
+                <ion-label stacked>Desconto itens</ion-label>
+                <ion-input [ngModel]="discountItenAmountFormatted" readonly="true"></ion-input>
+              </div>
+            </div>
+          </ion-item>
+        </ion-col>
+      </ion-row>
+      <ion-row class="ion-justify-content-end">
+        <ion-col col-6 class="form-col">
+          <ion-item>
+            <div class="item-inner">
+              <div class="item-wrapper">
+                <ion-label stacked>Subtotal</ion-label>
+                <ion-input [ngModel]="totalItensFormatted" readonly="true" class="input-number"></ion-input>
+              </div>
+            </div>
+          </ion-item>
+        </ion-col>
+      </ion-row>
+      <ion-row>
+        <ion-col col-6 class="form-col">
+          <ion-item>
+            <div class="item-inner">
+              <div class="item-wrapper">
+                <ion-label stacked>Desconto %</ion-label>
+                <ion-input type="number" [readonly]="isView" (change)="calculeDiscountPercent()"
+                  [(ngModel)]="discountPercent"></ion-input>
+              </div>
+            </div>
+          </ion-item>
+        </ion-col>
+        <ion-col col-6 class="form-col">
+          <ion-item>
+            <div class="item-inner">
+              <div class="item-wrapper">
+                <ion-label stacked>Desconto R$</ion-label>
+                <ion-input type="number" [(ngModel)]="discountAmount" [readonly]="isView" class="input-number" (change)="calculeDiscountAmount()">
+                </ion-input>
+              </div>
+            </div>
+          </ion-item>
+        </ion-col>
+      </ion-row>
+      <ion-row class="ion-justify-content-end">
+        <ion-col col-6 class="form-col">
+          <ion-item>
+            <div class="item-inner">
+              <div class="item-wrapper">
+                <ion-label stacked>Total</ion-label>
+                <ion-input [ngModel]="totalFormatted" readonly="true" class="input-number"></ion-input>
+              </div>
+            </div>
+          </ion-item>
+        </ion-col>
+      </ion-row>
+    </ion-grid>
+  </ion-list>
+</ion-content>
+
+<ion-footer *ngIf="!isView">
+  <ion-toolbar>
+    <ion-grid>
+      <ion-row>
+        <ion-col col-6>
+          <button ion-button class="btn btn-border" (click)="validateOrder()">VALIDAR</button>
+        </ion-col>
+        <ion-col col-6 *ngIf="!isView">
+          <button ion-button class="btn btn-block" [disabled]="!this.isOnline" (click)="save()">ENVIAR</button>
+        </ion-col>
+      </ion-row>
+    </ion-grid>
+  </ion-toolbar>
+</ion-footer>
+
+<ion-footer *ngIf="isView">
+  <ion-toolbar>
+    <ion-grid>
+      <ion-row>
+        <ion-col col-6>
+          <button ion-button class="btn btn-border" (click)="back()">ANTERIOR</button>
+        </ion-col>
+      </ion-row>
+    </ion-grid>
+  </ion-toolbar>
+</ion-footer>

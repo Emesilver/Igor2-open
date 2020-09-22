@@ -1,0 +1,17 @@
+.select {
+  height: 30px;
+  background-color: var(--ion-color-primary-dark);
+  margin: 0 10px 0 10px;
+  border-radius: 5px;
+  color: #fff;
+  position: relative;
+  span {
+    padding: 10px;
+    line-height: 30px;
+  }
+  ion-icon {
+    position: absolute;
+    right: 10px;
+    top: 7px;
+  }
+}

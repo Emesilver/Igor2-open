@@ -1,0 +1,135 @@
+<ion-header>
+  <ion-toolbar color="primary">
+    <ion-buttons slot="start">
+      <ion-back-button defaultHref="/home"></ion-back-button>
+    </ion-buttons>
+    <ion-buttons slot="end">
+      <ion-icon name="close" color="white" (click)="close()"></ion-icon>
+    </ion-buttons>
+    <ion-title>{{title}}</ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content color="bg-grey">
+  <ion-list>
+    <div class="ion-padding ion-text-right" *ngIf="!isView">
+      <button ion-button class="ion-text-uppercase btn inner-button" (click)="repeatOrder()">Repetir último pedido</button>
+    </div>
+    <ion-row>
+      <ion-col>
+        <ion-item>
+          <div class="item-inner">
+            <div class="item-wrapper">
+              <ion-label stacked>Cliente</ion-label>
+              <ion-input [ngModel]="desCli" [ngModelOptions]="{standalone:true}" type="text"
+                placeholder="Selecione um cliente" class="state" [readonly]="true" (click)="selectCustomer()">
+              </ion-input>
+            </div>
+          </div>
+        </ion-item>
+      </ion-col>
+    </ion-row>
+
+    <ion-row>
+      <ion-col>
+        <ion-item>
+          <div class="item-inner">
+            <div class="item-wrapper">
+              <ion-label stacked>Limite total</ion-label>
+              <ion-input type="text" [readonly]="true" [ngModel]="limiteTotal"></ion-input>
+            </div>
+          </div>
+          <button ion-button class="btn-request-limit" *ngIf="(!isView) && this.codCliErp != ''" clear
+            (click)="requestLimit()">
+            <ion-icon name="add-circle-outline" color="accent"></ion-icon>
+          </button>
+        </ion-item>
+      </ion-col>
+      <ion-col>
+        <ion-item>
+          <div class="item-inner">
+            <div class="item-wrapper">
+              <ion-label stacked>Crédito</ion-label>
+              <ion-input type="text" [readonly]="true" [ngModel]="credito"></ion-input>
+            </div>
+          </div>
+        </ion-item>
+      </ion-col>
+    </ion-row>
+
+    <div class="ion-padding ion-text-right" *ngIf="!isView">
+      <button ion-button class="ion-text-uppercase btn inner-button" (click)="repeatByCustomer()">Repetir pedido do
+        cliente</button>
+    </div>
+
+    <ion-row>
+      <ion-col>
+        <ion-item>
+          <div class="item-inner">
+            <div class="item-wrapper">
+              <ion-label stacked>Plano de pagamento</ion-label>
+              <ion-select [disabled]="isView" placeholder="Selecione um plano de pagamento" [(ngModel)]="codPlaErp">
+                <ion-select-option value="{{paymentPlan.codPlaErp}}" *ngFor="let paymentPlan of paymentPlans">
+                  {{paymentPlan.desPlano}}</ion-select-option>
+              </ion-select>
+            </div>
+          </div>
+        </ion-item>
+      </ion-col>
+    </ion-row>
+
+    <ion-row *ngIf="showDeliveryTypes" >
+      <ion-col>
+        <ion-item>
+          <div class="item-inner">
+            <div class="item-wrapper">
+              <ion-label stacked>Tipo de entrega</ion-label>
+              <ion-select [disabled]="isView" placeholder="Selecione um tipo de entrega" [(ngModel)]="codEntErp" (ionChange)="selectFreightAmout()">
+                <ion-select-option value="{{deliveryType.codEntErp}}" *ngFor="let deliveryType of deliveryTypes">
+                  {{deliveryType.desEnt}}</ion-select-option>
+              </ion-select>
+            </div>
+          </div>
+        </ion-item>
+      </ion-col>
+    </ion-row>
+    <ion-row *ngIf="showDeliveryTypes" >
+      <ion-col>
+        <ion-item>
+          <div class="item-inner">
+            <div class="item-wrapper">
+              <ion-label stacked>Valor do frete R$ (Ton)</ion-label>
+              <ion-input type="number" [readonly]="isView || disabledFreight" [(ngModel)]="freightAmount" class="editable-input"></ion-input>
+            </div>
+          </div>
+        </ion-item>
+      </ion-col>
+    </ion-row>
+
+    <ion-row>
+      <ion-col>
+        <ion-item>
+          <div class="item-inner">
+            <div class="item-wrapper">
+              <ion-label stacked>Observações do Bloqueio</ion-label>
+              <ion-textarea [(ngModel)]="obs" [readonly]="true"></ion-textarea>
+            </div>
+          </div>
+        </ion-item>
+      </ion-col>
+    </ion-row>
+
+  </ion-list>
+</ion-content>
+
+<ion-footer>
+  <ion-toolbar>
+    <ion-grid>
+      <ion-row class="ion-justify-content-end">
+        <ion-col col-6>
+          <button ion-button class="btn btn-block" block (click)="next()">PRÓXIMO</button>
+        </ion-col>
+      </ion-row>
+    </ion-grid>
+  </ion-toolbar>
+</ion-footer>

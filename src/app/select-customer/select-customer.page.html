@@ -1,0 +1,31 @@
+<ion-header>
+  <ion-toolbar color="primary">
+    <ion-buttons slot="end">
+      <ion-button (click)="close()">
+        <ion-icon name="close-outline"></ion-icon>
+      </ion-button>
+    </ion-buttons>
+    <ion-title>Selecione o cliente</ion-title>
+  </ion-toolbar>
+  <ion-toolbar color="primary">
+    <ion-searchbar (ionInput)="getItems($event)" placeholder="Pesquisar"></ion-searchbar>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content>
+  <ion-list>
+    <ion-item *ngFor="let customer of customersRendered" (click)="select(customer)">
+      <ion-label>
+        {{customer.cpfCnpj}} - {{customer.fantasia}}
+        <p>{{customer.razao}}</p>
+        <p>{{customer.cidade}} - {{customer.bairro}}</p>
+      </ion-label>
+    </ion-item>
+  </ion-list>
+  <ion-infinite-scroll threshold="100px" (ionInfinite)="loadData($event)">
+    <ion-infinite-scroll-content
+      loadingSpinner="crescent"
+      loadingText="Carregando mais clientes">
+    </ion-infinite-scroll-content>
+  </ion-infinite-scroll>
+</ion-content>

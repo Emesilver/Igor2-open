@@ -1,0 +1,110 @@
+<ion-header>
+  <ion-toolbar color="primary">
+    <ion-buttons slot="start">
+      <ion-menu-button></ion-menu-button>
+    </ion-buttons>
+    <ion-title>
+      IGOR
+    </ion-title>
+  </ion-toolbar>
+  <ion-toolbar color="primary">
+    <select-company></select-company>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content color="bg-gray">
+  <ion-slides class="slides">
+    <ion-slide class="double-line">
+      <h2>{{ daySel?.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' }) }}</h2>
+      <span>hoje</span>
+    </ion-slide>
+    <ion-slide class="double-line">
+      <h2>{{ dayOrderQty }}</h2>
+      <span>pedidos hoje</span>
+    </ion-slide>
+    <ion-slide class="double-line">
+      <h2>{{ dayCustomerPos?.toFixed(2)+"%" }}</h2>
+      <span>Positivação hoje</span>
+    </ion-slide>
+    <ion-slide class="double-line">
+      <h2>{{ monthSel?.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' }) }}</h2>
+      <span>este mês</span>
+    </ion-slide>
+    <ion-slide class="double-line">
+      <h2>{{ orderQty }}</h2>
+      <span>pedidos este mês</span>
+    </ion-slide>
+    <ion-slide class="double-line">
+      <h2>{{ customerPos?.toFixed(2)+"%" }}</h2>
+      <span>Positivação neste mês</span>
+    </ion-slide>
+  </ion-slides>
+
+  <ion-grid>
+    <ion-row>
+      <ion-col size="4" size-sm="2">
+        <div class="home-button">
+          <ion-card (click)="noConfig()">
+            <div class="img-container" color="accent">
+              <img src="assets/solicitacao.png" alt="">
+            </div>
+          </ion-card>
+          <p>Solicitação</p>
+        </div>
+      </ion-col>
+      <ion-col size="4" size-sm="2">
+        <div class="home-button">
+          <ion-card (click)="gotoPage('/customer-form')">
+            <div class="img-container">
+              <img src="assets/cliente.png" alt="">
+            </div>
+          </ion-card>
+          <p>Novo cliente</p>
+        </div>
+      </ion-col>
+      <ion-col size="4" size-sm="2">
+        <div class="home-button">
+          <ion-card (click)="gotoPage('/order-general-form')">
+            <div class="img-container">
+              <img src="assets/pedidonovo.png" alt="">
+            </div>
+          </ion-card>
+          <p>Novo pedido</p>
+        </div>
+      </ion-col>
+      <ion-col size="4" size-sm="2">
+        <div class="home-button">
+          <ion-card (click)="gotoPage('/consult')">
+            <div class="img-container">
+              <img src="assets/consulta.png" alt="">
+            </div>
+          </ion-card>
+          <p>Consultas</p>
+        </div>
+      </ion-col>
+      <ion-col size="4" size-sm="2">
+        <div class="home-button">
+          <ion-card (click)="gotoPage('/customer-list')">
+            <div class="img-container">
+              <img src="assets/clientelista.png" alt="">
+            </div>
+          </ion-card>
+          <p>Clientes</p>
+        </div>
+      </ion-col>
+      <ion-col size="4" size-sm="2">
+        <div class="home-button">
+          <ion-card (click)="gotoPage('/order-list')">
+            <div class="img-container">
+              <img src="assets/pedido.png" alt="">
+            </div>
+          </ion-card>
+          <p>Pedidos</p>
+        </div>
+      </ion-col>
+
+    </ion-row>
+  </ion-grid>
+
+</ion-content>
+<toolbar-tools></toolbar-tools>

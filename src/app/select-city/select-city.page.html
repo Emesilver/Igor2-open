@@ -1,0 +1,25 @@
+<ion-header>
+  <ion-toolbar color="primary">
+    <ion-buttons slot="end">
+      <ion-icon name="close" color="white" (click)="close()"></ion-icon>
+    </ion-buttons>
+    <ion-title>Selecione a cidade</ion-title>
+  </ion-toolbar>
+  <ion-toolbar color="primary">
+    <ion-searchbar (ionInput)="getItems($event)" placeholder="Pesquisar"></ion-searchbar>
+  </ion-toolbar>
+</ion-header>
+<ion-content>
+  <ion-list>
+    <ion-item *ngFor="let city of citiesRendered" (click)="selected(city)">
+      <ion-label>{{city.name}}</ion-label>
+    </ion-item>
+  </ion-list>
+
+  <ion-infinite-scroll threshold="100px" (ionInfinite)="loadData($event)">
+    <ion-infinite-scroll-content
+      loadingSpinner="crescent"
+      loadingText="Carregando mais cidades">
+    </ion-infinite-scroll-content>
+  </ion-infinite-scroll>
+</ion-content>

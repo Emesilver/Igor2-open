@@ -1,0 +1,31 @@
+<ion-header>
+  <div class="logo">
+    <img class="silico-logo" src="assets/SilicoBranco.png" alt="">
+  </div>
+</ion-header>
+<ion-content>
+  <ion-list lines="none" *ngFor="let text of sentences;let i = index">
+    <ion-item class="animated slideInRight message message-animate-{{i}}">
+      <ion-avatar slot="start">
+        <img class="igor-avatar" src="assets/robot.svg">
+      </ion-avatar>
+      <ion-label class="ion-text-wrap">{{text}}</ion-label>
+    </ion-item>
+  </ion-list>
+</ion-content>
+
+<div class="animated slideInRight delay-5s">
+  <ion-fab vertical="bottom" horizontal="end" slot="fixed">
+    <ion-fab-button [disabled]="!login" (click)="onSubmit()">
+      <ion-icon name="send"></ion-icon>
+    </ion-fab-button>
+  </ion-fab>
+
+  <ion-footer>
+    <ion-toolbar>
+      <ion-item lines="none">
+        <ion-input type="text" [(ngModel)]="login" placeholder="Digite seu E-mail."></ion-input>
+      </ion-item>
+    </ion-toolbar>
+  </ion-footer>
+</div>

@@ -1,0 +1,32 @@
+.logo {
+  background: var(--ion-color-primary);
+}
+
+.content {
+  background-color: var(--ion-color-white);
+}
+.igor-avatar {
+  background-color: var(--ion-color-primary);
+  padding: 5px;
+  border-radius: 50px;
+}
+
+.message-animate-1 {
+    animation-duration: 3s;
+    animation-delay: 2s;
+}
+
+.message-animate-2 {
+    animation-duration: 3s;
+    animation-delay: 6s;
+}
+
+.message-animate-3 {
+    animation-duration: 3s;
+    animation-delay: 10s;
+}
+
+.message-animate-4 {
+    animation-duration: 3s;
+    animation-delay: 14s;
+}

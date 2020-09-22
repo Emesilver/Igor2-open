@@ -1,0 +1,201 @@
+<ion-header>
+  <ion-toolbar color="primary">
+    <ion-buttons slot="start">
+      <ion-back-button defaultHref="/order-items-form"></ion-back-button>
+    </ion-buttons>
+    <ion-title>{{ itemTitle }}</ion-title>
+  </ion-toolbar>
+</ion-header>
+<ion-content color="bg-grey">
+  <ion-list>
+    <ion-row>
+      <ion-col>
+        <ion-item>
+          <div class="item-inner">
+            <div class="item-wrapper">
+              <ion-label stacked>Item</ion-label>
+              <ion-input [ngModel]="itemName" type="text" placeholder="Selecione um item" readonly class="state"
+                (click)="selectItem()"></ion-input>
+            </div>
+          </div>
+        </ion-item>
+      </ion-col>
+    </ion-row>
+    <ion-row *ngIf="showOperations">
+      <ion-col>
+        <ion-item>
+          <div class="item-inner">
+            <div class="item-wrapper">
+              <ion-label stacked>Operação</ion-label>
+              <ion-select placeholder="Selecione uma operação" [(ngModel)]="codOperacErp">
+                <ion-select-option value="{{operation.codOperacErp}}" *ngFor="let operation of operations">
+                  {{operation.desOperac}}</ion-select-option>
+              </ion-select>
+            </div>
+          </div>
+        </ion-item>
+      </ion-col>
+    </ion-row>
+    <ion-row>
+      <ion-col col-6 class="form-col">
+        <ion-item>
+          <div class="item-inner">
+            <div class="item-wrapper">
+              <ion-label stacked>Anterior</ion-label>
+              <ion-input type="text" readonly [ngModel]="lastPrice"></ion-input>
+            </div>
+          </div>
+        </ion-item>
+      </ion-col>
+      <ion-col col-6 class="form-col">
+        <ion-item>
+          <div class="item-inner">
+            <div class="item-wrapper">
+              <ion-label stacked>Qtd anterior</ion-label>
+              <ion-input type="number" readonly [ngModel]="lastQuantity"></ion-input>
+            </div>
+          </div>
+        </ion-item>
+      </ion-col>
+    </ion-row>
+    <ion-row>
+      <ion-col col-6 class="form-col">
+        <ion-item>
+          <div class="item-inner">
+            <div class="item-wrapper">
+              <!-- preco -->
+              <ion-label stacked>{{captionUntPriceFat}}</ion-label>
+              <ion-input type="number" (change)="changePriceFat()" [(ngModel)]="unitPriceFat" class="editable-input"
+                [readonly]="disablePrice"></ion-input>
+            </div>
+          </div>
+        </ion-item>
+        <p class="error" *ngIf="errorPrice">Preço fora do limite permitido.</p>
+      </ion-col>
+      <ion-col col-6 class="form-col">
+        <ion-item>
+          <div class="item-inner">
+            <div class="item-wrapper">
+              <!-- quantidade -->
+              <ion-label stacked>{{captionQtdFat}}</ion-label>
+              <ion-input type="number" (change)="totalizeItem()" [(ngModel)]="amountItemFat" [readonly]="dualUnit" class="editable-input">
+              </ion-input>
+            </div>
+          </div>
+        </ion-item>
+      </ion-col>
+    </ion-row>
+    <ion-row *ngIf="dualUnit">
+      <ion-col col-6 class="form-col">
+        <ion-item>
+          <div class="item-inner">
+            <div class="item-wrapper">
+              <ion-label stacked>{{captionUntPricePed}}</ion-label>
+              <ion-input [(ngModel)]="unitPriceFormatted" class="money-input" [readonly]="disablePrice || dualUnit">
+              </ion-input>
+            </div>
+          </div>
+        </ion-item>
+      </ion-col>
+      <ion-col col-6 class="form-col">
+        <ion-item>
+          <div class="item-inner">
+            <div class="item-wrapper">
+              <ion-label stacked>{{captionQtdPed}}</ion-label>
+              <ion-input type="number" (change)="calculeAmountFat()" [(ngModel)]="amountItem" [readonly]="false">
+              </ion-input>
+            </div>
+          </div>
+        </ion-item>
+      </ion-col>
+    </ion-row>
+    <ion-row>
+      <ion-col col-6>
+        <ion-item>
+          <div class="item-inner ion-justify-content-end">
+            <div class="item-wrapper">
+              <ion-label stacked>Subtotal R$</ion-label>
+              <ion-input [(ngModel)]="subTotalFormatted" class="money-input" readonly></ion-input>
+            </div>
+          </div>
+        </ion-item>
+      </ion-col>
+    </ion-row>
+    <ion-row>
+      <ion-col col-6 class="form-col">
+        <ion-item>
+          <div class="item-inner">
+            <div class="item-wrapper">
+              <ion-label stacked>Desconto %</ion-label>
+              <ion-input (change)="changeDiscount()" type="number" [(ngModel)]="discountPercent"
+                [readonly]="disableDiscount" class="editable-input"></ion-input>
+            </div>
+          </div>
+        </ion-item>
+        <p *ngIf="errorDiscount" class="error">Desconto fora do limite permitido.</p>
+      </ion-col>
+      <ion-col col-6 class="form-col">
+        <ion-item>
+          <div class="item-inner">
+            <div class="item-wrapper">
+              <ion-label stacked>Desconto R$</ion-label>
+              <ion-input (change)="calculeDiscountAmount()" [(ngModel)]="discountAmount" type="number"
+                class="editable-input" [readonly]="disableDiscount"></ion-input>
+            </div>
+          </div>
+        </ion-item>
+      </ion-col>
+    </ion-row>
+    <div *ngIf="showAditionals">
+      <ion-row>
+        <ion-col class="ion-text-center">
+          <button ion-button class="btn inner-button" (click)="aditionalViewToggle()">
+            <ion-icon *ngIf=" !aditionalsOpened" name="arrow-down"></ion-icon>
+            <ion-icon *ngIf="aditionalsOpened" name="arrow-up"></ion-icon>
+          </button>
+        </ion-col>
+      </ion-row>
+      <div *ngIf="aditionalsOpened">
+        <ion-row *ngIf="showComission">
+          <ion-col col-6 class="form-col">
+            <ion-item>
+              <div class="item-inner">
+                <div class="item-wrapper">
+                  <ion-label stacked>Comissão %</ion-label>
+                  <ion-input [(ngModel)]="comissionPercent" type="number" readonly>
+                  </ion-input>
+                </div>
+              </div>
+            </ion-item>
+          </ion-col>
+        </ion-row>
+      </div>
+    </div>
+    <ion-row>
+      <ion-col col-6 class="form-col">
+        <ion-item>
+          <div class="item-inner ion-justify-content-end">
+            <div class="item-wrapper">
+              <ion-label stacked>Total R$</ion-label>
+              <ion-input [(ngModel)]="totalFormatted" class="money-input" readonly></ion-input>
+            </div>
+          </div>
+        </ion-item>
+      </ion-col>
+    </ion-row>
+  </ion-list>
+</ion-content>
+<ion-footer>
+  <ion-toolbar>
+    <ion-grid>
+      <ion-row>
+        <ion-col col-6>
+          <button ion-button class="btn btn-border" (click)="save(true)">SALVAR</button>
+        </ion-col>
+        <ion-col col-6>
+          <button ion-button class="btn btn-block" (click)="saveAndAdd()">NOVO</button>
+        </ion-col>
+      </ion-row>
+    </ion-grid>
+  </ion-toolbar>
+</ion-footer>

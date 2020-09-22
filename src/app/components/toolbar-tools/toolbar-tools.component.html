@@ -1,0 +1,24 @@
+<ion-footer>
+  <ion-toolbar>
+    <ion-grid>
+      <ion-row>
+        <ion-col col-4 (click)="goToDraftListPage()">
+          <ion-icon name="document"></ion-icon>
+          <ion-badge *ngIf="draftsCount && draftsCount != '0'"  color="danger" class="badge-menu">{{draftsCount}}</ion-badge>
+          <span>RASCUNHOS</span>
+        </ion-col>
+        <ion-col col-4 (click)="goToChatPage()">
+          <!--ion-badge color="danger" class="badge-menu">!</ion-badge-->
+          <ion-icon name="chatbubbles"></ion-icon>
+          <span>CONVERSAS</span>
+        </ion-col>
+        <!--
+        <ion-col col-4>
+          <ion-icon name="mic"></ion-icon>
+          <span>VOZ</span>
+        </ion-col>
+        -->
+      </ion-row>
+    </ion-grid>
+  </ion-toolbar>
+</ion-footer>

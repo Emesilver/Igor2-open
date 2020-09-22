@@ -1,0 +1,33 @@
+ion-card,
+.card-ios,
+.card-md {
+  border: 0 !important;
+  box-shadow: none !important;
+  border: none !important;
+  border-style: none !important;
+  position: relative;
+  text-align: center;
+}
+.card {
+  border: 0 !important;
+  box-shadow: none !important;
+  border: none !important;
+  border-style: none !important;
+}
+
+.home-button {
+  text-align: center;
+  .img-container {
+    width: 80%;
+    padding: 10px;
+    border-radius: 10px;
+    margin-left: 0;
+    margin-right: 0;
+    display: inline-block;
+    background-color: var(--ion-color-accent);
+  }
+  p {
+    text-transform: uppercase;
+    font-size: 0.85em;
+  }
+}

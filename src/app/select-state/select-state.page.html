@@ -1,0 +1,15 @@
+<ion-header>
+  <ion-toolbar color="primary">
+    <ion-buttons slot="end">
+      <ion-icon name="close" color="white" (click)="close()"></ion-icon>
+    </ion-buttons>
+    <ion-title>Selecione o estado</ion-title>
+  </ion-toolbar>
+</ion-header>
+<ion-content>
+  <ion-list>
+    <ion-item *ngFor="let state of states" (click)="selected(state)">
+      <ion-label>{{state.name}}</ion-label>
+    </ion-item>
+  </ion-list>
+</ion-content>
