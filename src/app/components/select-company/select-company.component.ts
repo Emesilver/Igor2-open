@@ -1,6 +1,10 @@
-import { Component, OnInit } from '@angular/core';
-import { User } from 'src/app/models/user';
-import { AlertController } from '@ionic/angular';
+import { Component } from '@angular/core';
+import {
+  AlertButton,
+  AlertController,
+  AlertInput,
+  AlertOptions,
+} from '@ionic/angular';
 import { EventsService } from '../../services/events/events.service';
 import { UserProvider } from 'src/app/services/user/user';
 
@@ -9,8 +13,7 @@ import { UserProvider } from 'src/app/services/user/user';
   templateUrl: './select-company.component.html',
   styleUrls: ['./select-company.component.scss'],
 })
-export class SelectCompanyComponent implements OnInit {
-  user: User;
+export class SelectCompanyComponent {
   companyName = '';
 
   constructor(
@@ -22,48 +25,56 @@ export class SelectCompanyComponent implements OnInit {
   }
 
   async init() {
-    this.user = await this.userProvider.getUserLocal();
-    if (!this.user.currentCompany) {
-      this.user.currentCompany = this.user.companies ? this.user.companies[0] : null;
+    const user = await this.userProvider.getUserLocal();
+    if (!user.currentCompany) {
+      user.currentCompany = user.companies ? user.companies[0] : undefined;
     }
-    this.companyName = this.user.currentCompany.fantasiaEmp;
+    if (user.currentCompany?.fantasiaEmp) {
+      this.companyName = user.currentCompany?.fantasiaEmp;
+    } else {
+      this.companyName = 'Indefinida';
+    }
   }
 
   async selectCompany() {
-    const inputs = [];
-    this.user.companies.forEach((company) => {
+    const inputs: AlertInput[] = [];
+    const user = await this.userProvider.getUserLocal();
+    user.companies.forEach((company) => {
       inputs.push({
         value: company.idEmp,
         type: 'radio',
-        label: company.fantasiaEmp
+        label: company.fantasiaEmp,
       });
     });
-
-    const alert = await this.alertController.create({
-      header: 'Selecione uma empresa',
-      inputs,
-      buttons: [
-        {
-          text: 'Cancelar',
-          role: 'cancel',
-          cssClass: 'secondary',
-        }, {
-          text: 'OK',
-          handler: data => {
-            if (data) {
-              const newCurrentCompany = this.user.companies.find(x => x.idEmp === data);
+    const buttons: AlertButton[] = [
+      {
+        text: 'Cancelar',
+        role: 'cancel',
+        cssClass: 'secondary',
+      },
+      {
+        text: 'OK',
+        handler: async (idEmp: string) => {
+          if (idEmp) {
+            const user = await this.userProvider.getUserLocal();
+            const newCurrentCompany = user.companies.find(
+              (company) => company.idEmp === idEmp
+            );
+            if (newCurrentCompany) {
               this.companyName = newCurrentCompany.fantasiaEmp;
-              this.userProvider.setCurrentCompany(newCurrentCompany).then(() => {
-                this.events.publish('refreshInfo', {});
-              });
+              await this.userProvider.setCurrentCompany(newCurrentCompany);
+              this.events.publish('refreshInfo', {});
             }
           }
-        }
-      ]
-    });
+        },
+      },
+    ];
+    const alertOptions: AlertOptions = {
+      header: 'Selecione uma empresa',
+      inputs,
+      buttons,
+    };
+    const alert = await this.alertController.create(alertOptions);
     alert.present();
   }
-
-  ngOnInit() { }
-
 }

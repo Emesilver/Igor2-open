@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component } from '@angular/core';
 import { Router } from '@angular/router';
 import { OrderProvider } from '../services/order/order';
 import { Order, OrderHandleType } from '../models/order';
@@ -20,39 +20,40 @@ import { BalanceProvider } from '../services/balance/balance';
 import { Location } from '@angular/common';
 import { SelectCustomerPage } from '../select-customer/select-customer.page';
 import { CustomErrorPage } from '../custom-error/custom-error.page';
-import { AppState } from '../app.global';
+import { AppState, Properties } from '../app.global';
+import { Discount } from '../models/discount';
+import { OrderItem } from '../models/order-item';
 
 @Component({
   selector: 'app-order-finish-form',
   templateUrl: './order-finish-form.page.html',
   styleUrls: ['./order-finish-form.page.scss'],
 })
-export class OrderFinishFormPage implements OnInit {
-  orderWrk: Order;
-  orderHandleType: OrderHandleType;
+export class OrderFinishFormPage {
+  orderWrk!: Order;
+  orderHandleType!: OrderHandleType;
   title = 'Finalizar pedido';
   isView = false;
-  user: User;
-  paymentPlans: Array<PaymentPlan>;
+  user!: User;
+  paymentPlans!: Array<PaymentPlan>;
   customerName = '';
-  customer: Customer;
+  customer?: Customer;
   customerOrder = '';
   obs = '';
-  deliveryDate: string;
+  deliveryDate!: string;
   amountItens = 0;
   amountTotalItens = 0;
   totalItens = 0;
-  totalItensFormatted: string;
+  totalItensFormatted!: string;
   discountItenPercent = 0;
   discountItenAmount = 0;
-  discountItenAmountFormatted: string;
+  discountItenAmountFormatted!: string;
   discount = 0;
   discountPercent = 0;
   discountAmount = 0;
   total = 0;
-  totalFormatted: string;
+  totalFormatted!: string;
   paymentPlan = '';
-  isOnline = false;
 
   constructor(
     private orderProvider: OrderProvider,
@@ -71,27 +72,27 @@ export class OrderFinishFormPage implements OnInit {
     private navCtrl: NavController,
     private global: AppState
   ) {
-    if (this.router.getCurrentNavigation().extras.state) {
-      this.orderWrk = this.router.getCurrentNavigation().extras.state.orderWrk;
-      this.orderHandleType = this.router.getCurrentNavigation().extras.state.OrderHandleType;
-      this.isView = this.router.getCurrentNavigation().extras.state.isView;
+    const navigation = this.router.getCurrentNavigation();
+    if (navigation?.extras.state) {
+      this.orderWrk = navigation.extras.state['orderWrk'];
+      this.orderHandleType = navigation.extras.state['orderHandleType'];
+      this.isView = navigation.extras.state['isView'];
     }
     this.init();
   }
 
-  ngOnInit() {
-  }
-
   async init() {
     this.loaderProvider.show('Carregando...');
-    this.isOnline = this.global.getProperty('online');
     this.user = await this.userProvider.getUserLocal();
 
     if (this.orderHandleType === OrderHandleType.view) {
       this.title = 'Visualizando Pedido';
     }
-    this.paymentPlans = await this.paymentPlanProvider
-      .getByPriority(this.orderWrk.codCliErp, this.user.currentCompany.codRepErp);
+    if (this.user.currentCompany) {
+      this.paymentPlans = await this.paymentPlanProvider.getByPriority(
+        this.orderWrk.codCliErp
+      );
+    }
     await this.orderToVars();
     this.calculeDiscountAmount();
     this.loaderProvider.close();
@@ -99,41 +100,44 @@ export class OrderFinishFormPage implements OnInit {
 
   // Copia as propriedades do objeto pedido para as variaveis
   async orderToVars() {
-    this.customer = await this.customerProvider.getByIdLocal(this.orderWrk.codCliErp, this.user.currentCompany.idEmp);
-    this.customerName = this.customer.fantasia;
+    this.customer = await this.customerProvider.getByIdLocal(
+      this.orderWrk.codCliErp
+    );
+    if (this.customer) {
+      this.customerName = this.customer.fantasia;
+    }
+
     this.customerOrder = this.orderWrk.pedCli;
     this.paymentPlan = this.orderWrk.codPlaErp;
     this.deliveryDate = this.orderWrk.dataEnt;
     this.obs = this.orderWrk.obs;
     this.amountItens = this.orderWrk.itens.length;
-    this.amountTotalItens = this.sumArrayProperty(this.orderWrk.itens, 'qtd');
-    this.setTotalItens(this.sumArrayProperty(this.orderWrk.itens, 'totalItem'));
-    this.setTotal(this.sumArrayProperty(this.orderWrk.itens, 'totalItem'));
-    this.discountItenPercent = +(+this.sumArrayProperty(this.orderWrk.itens, 'desctoPerc') / +this.amountItens).toFixed(2);
-    this.setDiscountItenAmount(this.sumArrayProperty(this.orderWrk.itens, 'desctoVal'));
+    this.amountTotalItens = this.sumItens('qtd');
+    this.setTotalItens(this.sumItens('totalItem'));
+    this.setTotal(this.sumItens('totalItem'));
+    this.discountItenPercent = +(
+      +this.sumItens('desctoPerc') / +this.amountItens
+    ).toFixed(2);
+    this.setDiscountItenAmount(this.sumItens('desctoVal'));
     this.setDiscountAmount(this.orderWrk.desctoPedidoVal);
     this.discountPercent = this.orderWrk.desctoPedidoPerc;
     this.setTotal(this.orderWrk.totalPedido);
   }
 
-  sumArrayProperty(array, property) {
-    let total = 0;
-//    for (let index = 0; index < array.length; index++) {
-    for (const element of array) {
-//      const value = array[index][property];
-      const value = element[property];
-      if (value != null && value !== undefined) {
-        total += +value;
-      }
-    }
-    return total;
+  private sumItens(property: string) {
+    return this.orderWrk.itens.reduce(
+      (a, b) => a + Number(b[property as keyof OrderItem]),
+      0
+    );
   }
 
   calculeDiscountAmount() {
     const isNull = !!this.discountAmount;
     this.discountAmount = isNull ? this.discountAmount : 0;
     this.setTotal(this.totalItens);
-    this.discountPercent = +Math.abs(this.discountAmount * 100 / this.total).toFixed(2);
+    this.discountPercent = +Math.abs(
+      (this.discountAmount * 100) / this.total
+    ).toFixed(2);
     this.setTotal(this.total - this.discountAmount);
     this.setDiscountAmount(isNull ? this.discountAmount : 0);
     this.discountPercent = isNull ? this.discountPercent : 0;
@@ -141,9 +145,9 @@ export class OrderFinishFormPage implements OnInit {
   }
 
   async saveOnBlur() {
-    if (!(this.orderHandleType === OrderHandleType.view)) {
+    if (this.orderHandleType !== OrderHandleType.view) {
       this.varsToOrder();
-      await this.orderProvider.saveOrderDraft(this.orderWrk);
+      this.orderProvider.saveOrderDraft(this.orderWrk);
     }
   }
   // Copia as variaveis para o objeto de pedido em trabalho
@@ -165,22 +169,20 @@ export class OrderFinishFormPage implements OnInit {
     this.orderWrk.codPlaErp = this.paymentPlan;
   }
 
-
   // Valida formulário e enviar para API
-  async save() {
-
-    // TODO: validar cliente
-
-
+  async send() {
     this.varsToOrder();
     this.orderProvider.saveOrderDraft(this.orderWrk);
-    const valid = await this.validate();
-    if (valid.ok) {
-      const param: Param = await this.paramProvider.getByCustomer(this.orderWrk.codCliErp);
+    const orderErrors = await this.validate();
+    if (!orderErrors.length) {
+      const param = await this.paramProvider.getParamByCustomer(
+        this.orderWrk.codCliErp
+      );
       if (this.checkTimeToSend(param)) {
         try {
           this.loaderProvider.show('Enviando pedido...');
-          await this.orderProvider.saveBackend(this.orderWrk);
+          this.orderWrk.livre1 = '{operador: "' + this.user.email + '"' + '}';
+          await this.orderProvider.sendToSLC(this.orderWrk);
           this.loaderProvider.close();
           this.toastProvider.show('Pedido enviado com sucesso.');
           this.navCtrl.navigateRoot('/order-list');
@@ -188,25 +190,33 @@ export class OrderFinishFormPage implements OnInit {
           this.loaderProvider.close();
         }
       }
-
     } else {
       const modal = await this.modalController.create({
         component: CustomErrorPage,
-        componentProps: { errors: valid.errors, title: 'Existem erros no pedido' }
+        componentProps: {
+          errors: orderErrors,
+          title: 'Existem erros no pedido',
+        },
       });
       modal.present();
     }
   }
 
-  checkTimeToSend(param: Param): boolean {
+  checkTimeToSend(param: Param | undefined): boolean {
     let ret = true;
     if (param) {
       if (param.horPadIni !== '' && param.horPadFin !== '') {
         const actualDate = new Date();
         const actualTime = actualDate.toTimeString();
-        ret = (actualTime >= param.horPadIni) && (actualTime <= param.horPadFin);
+        ret = actualTime >= param.horPadIni && actualTime <= param.horPadFin;
         if (!ret) {
-          this.toastProvider.show('Horário bloqueado! (' + param.horPadIni + '-' + param.horPadFin + ')');
+          this.toastProvider.show(
+            'Horário bloqueado! (' +
+              param.horPadIni +
+              '-' +
+              param.horPadFin +
+              ')'
+          );
         }
       }
     } else {
@@ -216,97 +226,138 @@ export class OrderFinishFormPage implements OnInit {
   }
 
   // Valida o objeto orderWrk e seus itens
-  async validate(): Promise<{ ok: boolean, errors: Array<string> }> {
-    return new Promise<{ ok: boolean, errors: Array<string> }>(async resolve => {
-      this.loaderProvider.show('Validando pedido...');
-      const errors: Array<string> = [];
-      if (!this.orderWrk.codCliErp) {
-        errors.push('Cliente não foi selecionado.');
-      }
-      const balance = await this.balanceProvider.getByCustomer(this.customer);
-      if (balance) {
-        if (balance.bloqueado === 'S') {
-          if (balance.motivoBloq && balance.motivoBloq !== '') {
-            errors.push('Cliente bloqueado: ' + balance.motivoBloq);
-          } else {
-            errors.push('Cliente bloqueado');
-          }
-        }
-      }
+  private async validate() {
+    this.loaderProvider.show('Validando pedido...');
 
-      if (this.orderWrk.itens.length === 0) {
-        errors.push('Falta definir os produtos.');
-      }
+    const errors: Array<string> = [];
 
-      if (!this.paymentPlan) {
-        errors.push('Selecione um plano de pagamento.');
-      }
+    await this.validateCustomer(errors);
 
-      if (!this.orderWrk.dataEnt || this.orderWrk.dataEnt === '') {
-        errors.push('Falou selecionar a data de entrega.');
-      }
+    if (!this.paymentPlan) {
+      errors.push('Selecione um plano de pagamento.');
+    }
 
-      for (const orderItem of this.orderWrk.itens) {
-//      for (let index = 0; index < this.orderWrk.itens.length; index++) {
-//        const orderItem: OrderItem = this.orderWrk.itens[index];
-        if (orderItem.codCliErp && orderItem.codCliErp !== '') {
-          if (orderItem.codCliErp !== this.customer.codCliErp) {
-            errors.push(`Produto ${orderItem.descricao} não pertencem a esse cliente.`);
-          }
-        }
-        const priceObj = await this.priceProvider.getByPriority(this.orderWrk.codTabErp,
-          orderItem.codProErp, this.orderWrk.codCliErp, this.user.currentCompany.codRepErp
-        );
-        if (priceObj) {
-          const aRefError = [''];
-          if (!this.validatePrice(priceObj, orderItem.precoUnitFat, aRefError)) {
-            errors.push('O produto ' + orderItem.descricao + ' está com preço ' + aRefError[0]);
-          }
-        } else {
-          errors.push(`Produto ${orderItem.descricao} sem preço. Retire este produto e coloque novamente no pedido.`);
-        }
-        const discountObj = await this.discountProvider.getByPriority(
-          orderItem.codProErp, this.orderWrk.codCliErp, this.user.currentCompany.codRepErp
-        );
-        if (discountObj) {
-          if (!this.validateDiscount(discountObj, orderItem.desctoPerc)) {
-            errors.push(`O produto ${orderItem.descricao} com desconto fora do intervalo.`);
-          }
-        }
-        if (!orderItem.unidade) {
-          errors.push(`O produto ${orderItem.descricao} está sem unidade de medida.` +
-          ` Retire este produto e coloque novamente no pedido.`);
-        }
-        if (!orderItem.unidadeFat) {
-          errors.push(`O produto ${orderItem.descricao} está sem unidade de faturamento.` +
-          ` Retire este produto e coloque novamente no pedido.`);
-        }
-        if (!orderItem.qtdFat) {
-          errors.push(`O produto ${orderItem.descricao} está sem qtde para faturamento.` +
-          ` Retire este produto e coloque novamente no pedido.`);
-        }
+    if (!this.orderWrk.dataEnt || this.orderWrk.dataEnt === '') {
+      errors.push('Falou selecionar a data de entrega.');
+    }
 
-        if (orderItem.unidade.toUpperCase() === 'CX') {
-          if (orderItem.qtd % 1 !== 0 ) {
-            errors.push(`O produto ${orderItem.descricao} está em CX e não pode ter decimais na quantidade.`);
-          }
-        }
+    await this.validateItems(errors);
 
-      }
-      this.loaderProvider.close();
-      resolve({ ok: errors.length === 0, errors });
-    });
+    this.loaderProvider.close();
+
+    return errors;
   }
 
+  private async validateCustomer(errors: string[]) {
+    if (!this.orderWrk.codCliErp) {
+      errors.push('Cliente não foi selecionado.');
+      return;
+    }
+    const balance = await this.balanceProvider.getByCustomer(
+      this.orderWrk.codCliErp
+    );
+    if (balance) {
+      if (balance.bloqueado === 'S') {
+        if (balance.motivoBloq && balance.motivoBloq !== '') {
+          errors.push('Cliente bloqueado: ' + balance.motivoBloq);
+        } else {
+          errors.push('Cliente bloqueado');
+        }
+      }
+    }
+  }
 
-  validateDiscount(discount, discountValue) {
+  private async validateItems(errors: string[]) {
+    if (this.orderWrk.itens.length === 0) {
+      errors.push('Falta definir os produtos.');
+    }
+
+    for (const orderItem of this.orderWrk.itens) {
+      if (orderItem.codCliErp) {
+        if (orderItem.codCliErp !== this.orderWrk.codCliErp) {
+          errors.push(
+            `Produto ${orderItem.descricao} não pertencem a esse cliente.`
+          );
+        }
+      }
+      const priceObj = await this.priceProvider.getByPriority(
+        this.orderWrk.codTabErp,
+        orderItem.codProErp,
+        this.orderWrk.codCliErp,
+        orderItem.qtd
+      );
+      if (priceObj) {
+        const aRefError = [''];
+        if (!this.validatePrice(priceObj, orderItem.precoUnitFat, aRefError)) {
+          errors.push(
+            'O produto ' +
+              orderItem.descricao +
+              ' está com preço ' +
+              `${aRefError[0]}.` +
+              ' Retire este produto e coloque novamente no pedido.'
+          );
+        }
+      } else {
+        errors.push(
+          `Produto ${orderItem.descricao} sem preço. Retire este produto e coloque novamente no pedido.`
+        );
+      }
+      const discountObj = await this.discountProvider.getByPriority(
+        orderItem.codProErp,
+        this.orderWrk.codCliErp
+      );
+      if (discountObj) {
+        if (!this.validateDiscount(discountObj, orderItem.desctoPerc)) {
+          errors.push(
+            `O produto ${orderItem.descricao} com desconto fora do intervalo.`
+          );
+        }
+      }
+      if (!orderItem.unidade) {
+        errors.push(
+          `O produto ${orderItem.descricao} está sem unidade de medida.` +
+            ' Retire este produto e coloque novamente no pedido.'
+        );
+      }
+      if (!orderItem.unidadeFat) {
+        errors.push(
+          `O produto ${orderItem.descricao} está sem unidade de faturamento.` +
+            ' Retire este produto e coloque novamente no pedido.'
+        );
+      }
+      if (!orderItem.qtdFat) {
+        errors.push(
+          `O produto ${orderItem.descricao} está sem qtde para faturamento.` +
+            ' Retire este produto e coloque novamente no pedido.'
+        );
+      }
+
+      if (orderItem.unidade.toUpperCase() === 'CX') {
+        if (orderItem.qtd % 1 !== 0) {
+          errors.push(
+            `O produto ${orderItem.descricao} está em CX e não pode ter decimais na quantidade.`
+          );
+        }
+      }
+    }
+  }
+
+  private validateDiscount(discount: Discount, discountPerc: number) {
     if (discount) {
-      if (discount.codCliErp && discount.codCliErp !== this.customer.codCliErp) {
+      if (discountPerc > 90) {
+        return false;
+      }
+      if (
+        discount.codCliErp &&
+        discount.codCliErp !== this.orderWrk.codCliErp
+      ) {
         return false;
       }
       if (discount.tipoDesconto === 'VAL') {
-        if (+discountValue > +discount.descontoMax ||
-          +discountValue < +discount.descontoMin) {
+        if (
+          +discountPerc > +discount.descontoMax ||
+          +discountPerc < +discount.descontoMin
+        ) {
           return false;
         } else {
           return true;
@@ -318,38 +369,45 @@ export class OrderFinishFormPage implements OnInit {
     return false;
   }
 
-  validatePrice(price: Price, unitPrice, aRefError): boolean {
+  validatePrice(price: Price, unitPrice: number, aRefError: string[]): boolean {
     if (!unitPrice) {
       return false;
     }
     if (price) {
-      if (price.codCliErp && price.codCliErp !== this.customer.codCliErp) {
+      if (price.codCliErp && price.codCliErp !== this.orderWrk.codCliErp) {
         return false;
       }
       if (price.tipoPreco === 'VAL') {
         return this.verifyPrice(price, unitPrice, aRefError);
       }
-      return true;
+      if (price.tipoPreco === 'OBR' && price.precoPadrao !== unitPrice) {
+        aRefError[0] = 'diferente do permitido';
+        return false;
+      }
     }
     return true;
   }
 
-  verifyPrice(price: Price, unitPrice, aRefError): boolean {
+  verifyPrice(price: Price, unitPrice: number, aRefError: string[]): boolean {
     if (unitPrice > price.precoMax) {
       aRefError[0] = 'acima do permitido';
     }
     if (unitPrice < price.precoMin) {
       aRefError[0] = 'abaixo do permitido';
     }
-    return (aRefError[0] === '');
+    return aRefError[0] === '';
   }
 
   calculeDiscountPercent() {
     const isNull = !!this.discountPercent;
     this.discountPercent = isNull ? this.discountPercent : 0;
-    const tempTotal = this.total = this.totalItens;
-    this.setTotal(+Math.abs((this.total * (this.discountPercent / 100) - this.total)));
-    this.discount = +Math.abs(this.discountAmount = (tempTotal * (this.discountPercent / 100)));
+    const tempTotal = (this.total = this.totalItens);
+    this.setTotal(
+      +Math.abs(this.total * (this.discountPercent / 100) - this.total)
+    );
+    this.discount = +Math.abs(
+      (this.discountAmount = tempTotal * (this.discountPercent / 100))
+    );
     this.discountPercent = isNull ? this.discountPercent : 0;
     this.setDiscountAmount(isNull ? this.discountAmount : 0);
     this.saveOnBlur();
@@ -358,7 +416,7 @@ export class OrderFinishFormPage implements OnInit {
   async selectCustomer() {
     if (!this.isView) {
       const modal = await this.modalController.create({
-        component: SelectCustomerPage
+        component: SelectCustomerPage,
       });
       modal.present();
       modal.onDidDismiss().then((response) => {
@@ -367,9 +425,9 @@ export class OrderFinishFormPage implements OnInit {
           this.customer = response.data.customer;
           this.orderWrk.codCliErp = response.data.customer.codCliErp;
           this.orderWrk.codTabErp = response.data.customer.codTabErp;
-          this.paymentPlan = null;
+          this.paymentPlan = '';
           this.orderWrk.codPlaErp = this.paymentPlan;
-          this.getPaymentPlansSelected(this.orderWrk.codCliErp, this.user.currentCompany.codRepErp);
+          this.getPaymentPlansSelected(this.orderWrk.codCliErp);
           this.saveOrderDraft();
         }
       });
@@ -379,24 +437,27 @@ export class OrderFinishFormPage implements OnInit {
   async validateOrder() {
     this.varsToOrder();
     this.orderProvider.saveOrderDraft(this.orderWrk);
-    const valid = await this.validate();
-    if (valid.ok) {
+    const orderErrors = await this.validate();
+    if (!orderErrors.length) {
       this.toastProvider.show('Pedido validado, pronto para o envio.');
     } else {
       const modal = await this.modalController.create({
         component: CustomErrorPage,
-        componentProps: { errors: valid.errors, title: 'Existem erros no pedido' }
+        componentProps: {
+          errors: orderErrors,
+          title: 'Existem erros no pedido',
+        },
       });
       modal.present();
     }
   }
 
-  async getPaymentPlansSelected(codCliErp: string, codRepErp: string) {
-    this.paymentPlans = await this.paymentPlanProvider.getByPriority(codCliErp, codRepErp);
+  async getPaymentPlansSelected(codCliErp: string) {
+    this.paymentPlans = await this.paymentPlanProvider.getByPriority(codCliErp);
   }
 
   async saveOrderDraft() {
-    await this.orderProvider.saveOrderDraft(this.orderWrk);
+    this.orderProvider.saveOrderDraft(this.orderWrk);
   }
 
   back() {
@@ -404,7 +465,6 @@ export class OrderFinishFormPage implements OnInit {
   }
 
   close() {
-    // this.router.navigate(['/home']);
     this.navCtrl.navigateRoot('/home');
   }
 
@@ -414,16 +474,25 @@ export class OrderFinishFormPage implements OnInit {
 
   setDiscountItenAmount(value: number) {
     this.discountItenAmount = value;
-    this.discountItenAmountFormatted = value.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+    this.discountItenAmountFormatted = value.toLocaleString('pt-BR', {
+      style: 'currency',
+      currency: 'BRL',
+    });
   }
 
   setTotalItens(value: number) {
     this.totalItens = value;
-    this.totalItensFormatted = value.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+    this.totalItensFormatted = value.toLocaleString('pt-BR', {
+      style: 'currency',
+      currency: 'BRL',
+    });
   }
 
   setTotal(value: number) {
     this.total = value;
-    this.totalFormatted = value.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+    this.totalFormatted = value.toLocaleString('pt-BR', {
+      style: 'currency',
+      currency: 'BRL',
+    });
   }
 }

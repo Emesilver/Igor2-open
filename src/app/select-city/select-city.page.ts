@@ -9,19 +9,18 @@ import { LoaderProvider } from '../services/loader/loader';
   styleUrls: ['./select-city.page.scss'],
 })
 export class SelectCityPage implements OnInit {
-
   pageNumber = 1;
-  cities: Array<any>;
-  citiesRendered: Array<any>;
+  cities!: Array<any>;
+  citiesRendered!: Array<any>;
   state: any;
 
   constructor(
     private modalController: ModalController,
     private cityStateProvider: CityStateProvider,
     private navParams: NavParams,
-    private loaderProvider: LoaderProvider,
+    private loaderProvider: LoaderProvider
   ) {
-    this.state = this.navParams.get('state')
+    this.state = this.navParams.get('state');
   }
 
   async ngOnInit() {
@@ -31,19 +30,19 @@ export class SelectCityPage implements OnInit {
     await this.loaderProvider.close();
   }
 
-  paginate(array) {
+  paginate(array: any[]) {
     let pageNumber = this.pageNumber;
     --pageNumber;
     return array.slice(pageNumber * 30, (pageNumber + 1) * 30);
   }
 
-  loadData(event) {
+  loadData(event: any) {
     setTimeout(() => {
       this.pageNumber++;
-      const moreData = this.paginate(this.cities);
-      for (var index in moreData){
-        this.citiesRendered.push(moreData[index]);
-      }
+      const cities = this.paginate(this.cities);
+      cities.forEach((city) => {
+        this.citiesRendered.push(city);
+      });
       event.target.complete();
       if (this.citiesRendered.length === this.cities.length) {
         event.target.disabled = true;
@@ -51,7 +50,7 @@ export class SelectCityPage implements OnInit {
     }, 500);
   }
 
-  selected(city) {
+  selected(city: any) {
     this.modalController.dismiss({ city: city });
   }
 
@@ -63,7 +62,7 @@ export class SelectCityPage implements OnInit {
     const val = ev.target.value;
     if (val && val.trim() !== '') {
       this.citiesRendered = this.cities.filter((item) => {
-        return (item.name.toLowerCase().indexOf(val.toLowerCase()) > -1);
+        return item.name.toLowerCase().indexOf(val.toLowerCase()) > -1;
       });
     } else {
       this.pageNumber = 1;

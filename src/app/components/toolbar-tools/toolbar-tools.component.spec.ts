@@ -1,5 +1,5 @@
 import { CUSTOM_ELEMENTS_SCHEMA } from '@angular/core';
-import { async, ComponentFixture, TestBed } from '@angular/core/testing';
+import { ComponentFixture, TestBed, waitForAsync } from '@angular/core/testing';
 
 import { ToolbarToolsComponent } from './toolbar-tools.component';
 
@@ -7,7 +7,7 @@ describe('ToolbarToolsComponent', () => {
   let component: ToolbarToolsComponent;
   let fixture: ComponentFixture<ToolbarToolsComponent>;
 
-  beforeEach(async(() => {
+  beforeEach(waitForAsync(() => {
     TestBed.configureTestingModule({
       declarations: [ ToolbarToolsComponent ],
       schemas: [CUSTOM_ELEMENTS_SCHEMA],

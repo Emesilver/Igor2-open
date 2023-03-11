@@ -1,5 +1,5 @@
 import { FormatterProvider } from './../services/formatter/formatter';
-import { Component, OnInit } from '@angular/core';
+import { Component } from '@angular/core';
 import { User } from '../models/user';
 import { PaymentPlan } from '../models/payment-plan';
 import { Order, OrderHandleType } from '../models/order';
@@ -11,9 +11,12 @@ import { ToastProvider } from '../services/toast/toast';
 import { CustomerProvider } from '../services/customer/customer';
 import { BalanceProvider } from '../services/balance/balance';
 import { Customer } from '../models/customer';
-import { Router, NavigationExtras, ActivatedRoute } from '@angular/router';
+import { Router, NavigationExtras } from '@angular/router';
 import { SelectCustomerPage } from '../select-customer/select-customer.page';
-import { CustomerLimitPage } from '../customer-limit/customer-limit.page';
+import {
+  CustomerLimit,
+  CustomerLimitPage,
+} from '../customer-limit/customer-limit.page';
 import { DeliveryType } from '../models/delivery-type';
 import { DeliveryTypeProvider } from '../services/delivery-type/delivery-type';
 
@@ -22,33 +25,32 @@ import { DeliveryTypeProvider } from '../services/delivery-type/delivery-type';
   templateUrl: './order-general-form.page.html',
   styleUrls: ['./order-general-form.page.scss'],
 })
-export class OrderGeneralFormPage implements OnInit {
-
-  user: User;
+export class OrderGeneralFormPage {
+  user!: User;
   paymentPlans: Array<PaymentPlan> = [];
   deliveryTypes: Array<DeliveryType> = [];
   showDeliveryTypes = false;
   submit = false;
-  orderWrk: Order; // Pedido em trabalho na tela
+  orderWrk!: Order; // Pedido em trabalho na tela
   orderHandleType: OrderHandleType; // novo, edicao ou visualizacao
   isView = false;
   title: string;
   isBack = false;
 
   // Variaveis necessárias para tela (objetos não estão sendo aceitos no html)
-  idEmp: number;
-  codCliErp: string;
-  codRepErp: string;
-  desCli: string;
-  codPlaErp: string;
-  codEntErp: string;
-  limiteTotal: string;
-  credito: string;
-  obs: string;
-  paymentPlan: any;
+  idEmp!: number;
+  codCliErp!: string;
+  codRepErp!: string;
+  desCli!: string;
+  codPlaErp!: string;
+  codEntErp!: string;
+  limiteTotal!: string;
+  credito!: string;
+  obs!: string;
+  //  paymentPlan: any;
   disabledFreight = true;
   freightAmount = 0;
-  deliveryTypeSelected: DeliveryType;
+  deliveryTypeSelected!: DeliveryType;
   constructor(
     private router: Router,
     private modalCtrl: ModalController,
@@ -59,14 +61,15 @@ export class OrderGeneralFormPage implements OnInit {
     private customerProvider: CustomerProvider,
     private balanceProvider: BalanceProvider,
     private deliveryTypeProvider: DeliveryTypeProvider,
-    private formatter: FormatterProvider,
+    private formatter: FormatterProvider
   ) {
     let order = null;
-    let customer = null;
-    if (this.router.getCurrentNavigation().extras.state) {
-      this.isView = this.router.getCurrentNavigation().extras.state.isView;
-      order = this.router.getCurrentNavigation().extras.state.order;
-      customer = this.router.getCurrentNavigation().extras.state.customer;
+    let customer: Customer | undefined = undefined;
+    const navigation = this.router.getCurrentNavigation();
+    if (navigation?.extras.state) {
+      this.isView = navigation.extras.state['isView'];
+      order = navigation.extras.state['order'];
+      customer = navigation.extras.state['customer'];
     }
     if (order) {
       this.title = 'Alterando Pedido';
@@ -85,28 +88,33 @@ export class OrderGeneralFormPage implements OnInit {
     this.init(customer);
   }
 
-  async init(customer) {
+  async init(customer: Customer | undefined) {
     this.obs = this.orderWrk ? this.orderWrk.obs : '';
     this.codCliErp = this.orderWrk ? this.orderWrk.codCliErp : '';
     this.user = await this.userProvider.getUserLocal();
     if (this.orderHandleType === OrderHandleType.new) {
-      this.orderWrk = await this.orderProvider.getNewEmpty(this.user.currentCompany.codRepErp);
+      if (this.user.currentCompany) {
+        this.orderWrk = this.orderProvider.getNewEmpty(
+          this.user.currentCompany.codRepErp
+        );
+      }
       if (customer) {
         this.fillCustomer(customer);
       }
     } else {
       // Necessario usar variavel porque o html nao está mapeando o orderWrk.variaveis
       this.desCli = this.orderWrk.desCli;
-      this.paymentPlans = await this.paymentPlanProvider
-      .getByPriority(this.orderWrk.codCliErp, this.orderWrk.codRepErp);
+      this.paymentPlans = await this.paymentPlanProvider.getByPriority(
+        this.orderWrk.codCliErp
+      );
       this.codPlaErp = this.orderWrk.codPlaErp;
       await this.loadDeliveryTypes();
-      await this.selectFreightAmout();
+
+      // Sem frete por enquanto, pois era usado apenas pela SINA
+      // await this.selectFreightAmout();
+
       this.freightAmount = this.orderWrk.freteVal;
     }
-  }
-
-  ngOnInit(): void {
   }
 
   async fillCustomer(customer: Customer) {
@@ -119,11 +127,15 @@ export class OrderGeneralFormPage implements OnInit {
         this.orderWrk.codTabErp = customer.codTabErp;
         this.orderWrk.desCli = customer.fantasia;
         this.desCli = this.orderWrk.desCli;
-        this.limiteTotal = customer.limiteTotal.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+        this.limiteTotal = customer.limiteTotal.toLocaleString('pt-BR', {
+          style: 'currency',
+          currency: 'BRL',
+        });
         this.credito = '';
-        await this.setBalance(customer);
-        this.paymentPlans = await this.paymentPlanProvider
-          .getByPriority(this.orderWrk.codCliErp, this.orderWrk.codRepErp);
+        await this.setBalance(customer.codCliErp);
+        this.paymentPlans = await this.paymentPlanProvider.getByPriority(
+          this.orderWrk.codCliErp
+        );
         this.loadDeliveryTypes();
         if (this.paymentPlans.length === 1) {
           this.codPlaErp = this.paymentPlans[0].codPlaErp;
@@ -131,15 +143,20 @@ export class OrderGeneralFormPage implements OnInit {
           this.codPlaErp = customer.codPlaErpPadrao;
         }
       } else {
-        this.toastProvider.show('Cliente bloqueado: Cliente em fase de cadastro.');
+        this.toastProvider.show(
+          'Cliente bloqueado: Cliente em fase de cadastro.'
+        );
       }
     }
   }
 
-  async setBalance(customer) {
-    const balance = await this.balanceProvider.getByCustomer(customer);
+  async setBalance(codCliErp: string) {
+    const balance = await this.balanceProvider.getByCustomer(codCliErp);
     if (balance) {
-      this.credito = balance.credito.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+      this.credito = balance.credito.toLocaleString('pt-BR', {
+        style: 'currency',
+        currency: 'BRL',
+      });
       if (balance.bloqueado === 'S') {
         if (balance.motivoBloq && balance.motivoBloq !== '') {
           this.toastProvider.show('Cliente bloqueado: ' + balance.motivoBloq);
@@ -153,7 +170,7 @@ export class OrderGeneralFormPage implements OnInit {
   async selectCustomer() {
     if (this.orderHandleType !== OrderHandleType.view) {
       const modal = await this.modalCtrl.create({
-        component: SelectCustomerPage
+        component: SelectCustomerPage,
       });
       modal.present();
       modal.onDidDismiss().then((response) => {
@@ -167,19 +184,19 @@ export class OrderGeneralFormPage implements OnInit {
   async requestLimit() {
     // Verifica se está no modo de edicao
     if (this.orderHandleType !== OrderHandleType.view) {
-      const customer = {
+      const customerLimit: CustomerLimit = {
         idEmp: this.idEmp,
         codCliErp: this.codCliErp,
         codRepErp: this.codRepErp,
         limit: this.limiteTotal,
         credit: this.credito,
-        limiteTotal: 0
+        limiteTotal: 0,
       };
       const modal = await this.modalCtrl.create({
         component: CustomerLimitPage,
         componentProps: {
-          customer
-        }
+          customerLimit,
+        },
       });
       modal.present();
     }
@@ -226,8 +243,8 @@ export class OrderGeneralFormPage implements OnInit {
           state: {
             isView,
             orderWrk: this.orderWrk,
-            orderHandleType: this.orderHandleType
-          }
+            orderHandleType: this.orderHandleType,
+          },
         };
         this.router.navigate(['/order-items-form'], navigationExtras);
       }
@@ -241,21 +258,29 @@ export class OrderGeneralFormPage implements OnInit {
       this.toastProvider.show('Selecione um cliente.');
       return;
     }
-    const lastOrder = await this.orderProvider.getLastOrderByCustomer(this.orderWrk.codCliErp);
-
-    this.nextStepRepeat(lastOrder);
+    const lastOrder = await this.orderProvider.getLastCustomerOrders(
+      this.orderWrk.codCliErp,
+      1
+    );
+    if (lastOrder?.length > 0) {
+      this.nextStepRepeat(lastOrder[0]);
+      this.toastProvider.show('Produtos adicionados.');
+      return;
+    }
+    this.toastProvider.show('Nenhum pedido encontrado.');
   }
 
   async repeatOrder() {
     const lastOrder = await this.orderProvider.getLastOrder();
-
-    this.nextStepRepeat(lastOrder);
+    if (lastOrder) {
+      this.nextStepRepeat(lastOrder);
+    }
   }
 
-  async nextStepRepeat(lastOrder: Order) {
+  private async nextStepRepeat(lastOrder: Order) {
     if (lastOrder) {
       this.orderWrk = Object.assign(this.orderWrk, lastOrder);
-      this.orderWrk.codPedGuid = null;
+      this.orderWrk.codPedGuid = '';
       this.orderWrk.codPedErp = '';
       this.orderWrk.obs = '';
       this.orderWrk.statusPed = 'RAS'; // rascunho
@@ -263,13 +288,18 @@ export class OrderGeneralFormPage implements OnInit {
       this.desCli = this.orderWrk.desCli;
       this.codPlaErp = this.orderWrk.codPlaErp;
       this.paymentPlans = await this.paymentPlanProvider.getByPriority(
-        this.orderWrk.codCliErp, this.orderWrk.codRepErp
+        this.orderWrk.codCliErp
       );
-      await this.setBalance({ codCliErp: this.orderWrk.codCliErp });
-      this.limiteTotal = (
-        await this.customerProvider.getByIdLocal(this.orderWrk.codCliErp)
-      ).limiteTotal.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
-      this.orderProvider.fillItensProps(this.orderWrk);
+      await this.setBalance(this.orderWrk.codCliErp);
+      const cust = await this.customerProvider.getByIdLocal(
+        this.orderWrk.codCliErp
+      );
+      if (cust) {
+        this.limiteTotal = this.formatter.moneyFormatter(cust.limiteTotal);
+      } else {
+        this.limiteTotal = this.formatter.moneyFormatter(0);
+      }
+      await this.orderProvider.fillItensProps(this.orderWrk);
     } else {
       this.toastProvider.show('Nenhum pedido encontrado.');
     }
@@ -284,11 +314,16 @@ export class OrderGeneralFormPage implements OnInit {
   }
 
   private async loadDeliveryTypes() {
-    this.deliveryTypes = await this.deliveryTypeProvider.getDeliveriesCapa();
+    this.deliveryTypes = await this.deliveryTypeProvider.getDeliveriesCapa(
+      this.codCliErp
+    );
     if (this.deliveryTypes) {
-      this.deliveryTypes = this.deliveryTypes.filter(dt => {
-        return ((dt.codRepErp === this.user.currentCompany.codRepErp) || (dt.codRepErp === '')) &&
-          ((dt.codCliErp === this.codCliErp) || (dt.codCliErp === ''));
+      this.deliveryTypes = this.deliveryTypes.filter((dt) => {
+        return (
+          (dt.codRepErp === this.user.currentCompany?.codRepErp ||
+            dt.codRepErp === '') &&
+          (dt.codCliErp === this.codCliErp || dt.codCliErp === '')
+        );
       });
       if (this.deliveryTypes.length > 0) {
         this.showDeliveryTypes = true;
@@ -311,24 +346,31 @@ export class OrderGeneralFormPage implements OnInit {
    */
   async selectFreightAmout() {
     this.deliveryTypeSelected = await this.deliveryTypeProvider.getByPriority(
-      this.codCliErp, '', this.codEntErp
+      this.codCliErp,
+      '',
+      this.codEntErp
     );
-    if (!this.deliveryTypeSelected || (this.isFreightAmountRequired())) {
+    if (!this.deliveryTypeSelected || this.isFreightAmountRequired()) {
       this.disabledFreight = false;
       this.freightAmount = 0;
     } else {
       this.disabledFreight = true;
-      this.freightAmount = this.formatter.round(this.deliveryTypeSelected.fretePadrao);
+      this.freightAmount = this.formatter.round(
+        this.deliveryTypeSelected.fretePadrao
+      );
     }
   }
 
   isFreightAmountRequired() {
-    if (this.deliveryTypeSelected) {
-      if (this.deliveryTypeSelected.codEntErp.toUpperCase() === 'FOB') {
-        return false;
-      }
-      return true;
-    }
-    return this.showDeliveryTypes;
+    //   if (this.deliveryTypeSelected) {
+    //     if (this.deliveryTypeSelected.codEntErp.toUpperCase() === 'FOB') {
+    //       return false;
+    //     }
+    //     return true;
+    //   }
+    //   return this.showDeliveryTypes;
+
+    // Sem frete por enquanto, pois era usado apenas na SINA
+    return false;
   }
 }

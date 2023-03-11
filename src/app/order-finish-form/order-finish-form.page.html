@@ -49,14 +49,14 @@
           <div class="item-inner">
             <div class="item-wrapper">
               <ion-label stacked>Observações</ion-label>
-              <ion-textarea [(ngModel)]="obs" (ionChange)="saveOnBlur()" [readonly]="isView"></ion-textarea>
+              <ion-textarea maxlength="240" [(ngModel)]="obs" (ionChange)="saveOnBlur()" [readonly]="isView"></ion-textarea>
             </div>
           </div>
         </ion-item>
       </ion-col>
     </ion-row>
     <ion-row>
-      <ion-col col-6>
+      <ion-col>
         <ion-item>
           <div class="item-inner">
             <div class="item-wrapper">
@@ -67,14 +67,30 @@
           </div>
         </ion-item>
       </ion-col>
-      <ion-col col-6>
+    </ion-row>
+    <ion-row>
+      <ion-col>
         <ion-item>
           <div class="item-inner">
             <div class="item-wrapper">
               <ion-label stacked>Data de entrega</ion-label>
-              <ion-datetime displayFormat="DD/MM/YYYY" (ionChange)="saveOnBlur()" [readonly]="isView"
-                [(ngModel)]="deliveryDate" min="2017" max="2030-10-31" cancelText="Cancelar" doneText="Confirmar">
-              </ion-datetime>
+              <ion-input 
+                value="{{deliveryDate | date: 'dd/MM/YYYY'}}" 
+                id="deliveryDate" 
+                [readonly]="isView"
+                (ionChange)="saveOnBlur()">
+              </ion-input>
+              <ion-popover trigger="deliveryDate" size="cover">
+                <ng-template>
+                  <ion-datetime
+                    presentation="deliveryDate"
+                    [(ngModel)]="deliveryDate"
+                    [readonly]="isView"
+                    min="2022-01-01" 
+                    max="2032-01-01"
+                  ></ion-datetime>
+                </ng-template>
+              </ion-popover>
             </div>
           </div>
         </ion-item>
@@ -190,7 +206,7 @@
           <button ion-button class="btn btn-border" (click)="validateOrder()">VALIDAR</button>
         </ion-col>
         <ion-col col-6 *ngIf="!isView">
-          <button ion-button class="btn btn-block" [disabled]="!this.isOnline" (click)="save()">ENVIAR</button>
+          <button ion-button class="btn btn-block" (click)="send()">ENVIAR</button>
         </ion-col>
       </ion-row>
     </ion-grid>

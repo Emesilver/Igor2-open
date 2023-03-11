@@ -1,6 +1,6 @@
 import { CustomerLimitPage } from './customer-limit/customer-limit.page';
 import { BalanceProvider } from './services/balance/balance';
-import { IonicStorageModule } from '@ionic/storage';
+import { IonicStorageModule } from '@ionic/storage-angular';
 import { NgModule } from '@angular/core';
 import { BrowserModule } from '@angular/platform-browser';
 import { RouteReuseStrategy } from '@angular/router';
@@ -12,9 +12,8 @@ import { StatusBar } from '@ionic-native/status-bar/ngx';
 import { AppComponent } from './app.component';
 import { AppRoutingModule } from './app-routing.module';
 import { HttpClientModule } from '@angular/common/http';
-// import { FCM } from '@ionic-native/fcm/ngx';
-import { FCM } from 'cordova-plugin-fcm-with-dependecy-updated/ionic/ngx';
-import { UniqueDeviceID } from '@ionic-native/unique-device-id/ngx';
+//import { FCM } from 'cordova-plugin-fcm-with-dependecy-updated/ionic/ngx';
+import { Device } from '@ionic-native/device/ngx';
 import { Network } from '@ionic-native/network/ngx';
 import { UserProvider } from './services/user/user';
 import { StockProvider } from './services/stock/stock';
@@ -76,9 +75,9 @@ import { DeliveryTypeProvider } from './services/delivery-type/delivery-type';
   providers: [
     StatusBar,
     SplashScreen,
-    FCM,
+    //    FCM,
     { provide: RouteReuseStrategy, useClass: IonicRouteStrategy },
-    UniqueDeviceID,
+    Device,
     Network,
     ParamProvider,
     CustomerProvider,
@@ -102,6 +101,6 @@ import { DeliveryTypeProvider } from './services/delivery-type/delivery-type';
     ComissionProvider,
     DeliveryTypeProvider,
   ],
-  bootstrap: [AppComponent]
+  bootstrap: [AppComponent],
 })
-export class AppModule { }
+export class AppModule {}

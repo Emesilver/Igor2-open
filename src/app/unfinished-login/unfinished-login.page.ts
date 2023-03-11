@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component } from '@angular/core';
 import { UserProvider } from '../services/user/user';
 import { Router } from '@angular/router';
 
@@ -7,19 +7,14 @@ import { Router } from '@angular/router';
   templateUrl: './unfinished-login.page.html',
   styleUrls: ['./unfinished-login.page.scss'],
 })
-export class UnfinishedLoginPage implements OnInit {
+export class UnfinishedLoginPage {
   message: string;
-  constructor(
-    private userProvider: UserProvider,
-    private router: Router
-  ) {
+  constructor(private userProvider: UserProvider, private router: Router) {
     this.message = 'Aguarde a finalização do seu cadastro.';
-    if (this.router.getCurrentNavigation().extras.state) {
-      this.message = this.router.getCurrentNavigation().extras.state.message;
+    const navigation = this.router.getCurrentNavigation();
+    if (navigation?.extras.state) {
+      this.message = navigation.extras.state['message'];
     }
-  }
-
-  ngOnInit() {
   }
 
   logout() {

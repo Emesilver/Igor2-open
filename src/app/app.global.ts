@@ -1,138 +1,139 @@
 import { Injectable } from '@angular/core';
 
-// Configuracao para acesso ao Google RealTime Database (chat)
-export const firebaseConfig = {
-  apiKey: 'seu-apiKey',
-  authDomain: 'seu-authDomain',
-  databaseURL: 'https://sua-databaseURL',
-  projectId: 'seu-projectId',
-  storageBucket: 'seu-storageBucket',
-  messagingSenderId: 'seu-messagingSenderId'
-};
+export enum Properties {
+  ID_OPER = 'id-oper',
+  ID_EMP = 'id-emp',
+  COD_REP_ERP = 'cod-rep-erp',
+  BEARER_INFO = 'bearer-info',
+  BEARER_TOKEN = 'bearer-token',
+  BEARER_EXPIRES_AT = 'bearer-expires-at',
+}
 
+// Nomes de modelos que sao utilizados na carga parcial
+// Nestas cargas a propriedade precisa coincidir com o nome da tabela na carga parcial
+export enum ModelNames {
+  par_venda = 'parVendas',
+  produto = 'produtos',
+  cliente = 'clientes',
+  pedido = 'pedidos',
+  desconto = 'descontos',
+  plano = 'planos',
+  preco = 'precos',
+  saldo = 'saldos',
+  estoque = 'estoques',
+  comissao = 'comissoes',
+  tipo_entrega = 'tiposEntrega',
+  operacao = 'operacoes',
+  titulo = 'titulos',
+  carga = 'carga',
+  token = 'token',
+  // Nomes de modelos que nao sao utilizados na carga parcial (pode ser definido qualquer nome)
+  principais_produtos = 'principais_produtos',
+  tipo_entrega_capa = 'tiposEntregaCapa',
+}
 @Injectable({
-  providedIn: 'root'
+  providedIn: 'root',
 })
 export class AppState {
-  // Inicializo com idOper = 0 para saber que ainda nao foi definido nenhum operador
-  _state = {idOper: 0};
+  _state: Record<string, string | number | boolean> = {};
+
+  constructor() {
+    // Inicializo com idOper = 0 para saber que ainda nao foi definido nenhum operador
+    this.setProperty(Properties.ID_OPER, 0);
+  }
 
   // already return a clone of the current state
   get state() {
-    return this._state = this.clone(this._state);
+    return (this._state = this.clone(this._state));
   }
 
   // never allow mutation
   set state(value) {
     throw new Error('do not mutate the `.state` directly');
   }
-
-  getProperty(prop?: any) {
+  getProperty(prop: Properties): string | number | boolean {
+    return this.state[prop];
     // use our state getter for the clone
-    const state = this.state;
-    return state.hasOwnProperty(prop) ? state[prop] : state;
+    // const state = this.state;
+    // return prop in state ? state[prop] : state;
   }
 
   // Retorna null se a propriedade nao existir (diferente da getProperty que sempre retorna algo)
-  getPropertyOrNull(prop: string) {
-    return this._state.hasOwnProperty(prop) ? this._state[prop] : null;
-  }
+  // getPropertyOrNull(prop: Properties) {
+  //   return prop in this._state ? this._state[prop] : null;
+  // }
 
-  setProperty(prop: string, value: any) {
+  setProperty(prop: Properties, value: string | number) {
     // internally mutate our state
-    return this._state[prop] = value;
+    this._state[prop] = value;
   }
 
   get API_URL() {
-    // Caso nao use o midware da silico, substituir pelo endereco REST dos microservicos do ERP
-    return 'https://v2-dot-silico-java.appspot.com/v2'
+    // let idEmp = this.get('idEmp');
+    // idEmp = parseInt(idEmp, 10);
+    // if (Number.isInteger(idEmp) && idEmp < 10) {
+    // return 'https://develop-dot-silico-java.appspot.com/v1';
+    // }
+    //    return 'https://silico-java.appspot.com/v1';
+    //    return 'https://v2-dot-silico-java.appspot.com/v2'
+    return 'https://v3-dot-silico-java.uc.r.appspot.com';
   }
 
   get API_AUTH_CFG() {
     return {
-      url: 'https://v2-dot-silico-java.appspot.com/v2/oauth2/token',
-      client_id: 'seu-client_id-silico',
-      client_secret: 'seu-client_secret-silico'
-    }
+      // enquanto estiver fazendo post na v2 tem que pegar token nela.
+      //      url: 'https://v2-dot-silico-java.appspot.com/v2/oauth2/token',
+      // url: 'https://v3-dot-silico-java.uc.r.appspot.com/oauth2/token',
+      client_id: '6bb79fa8-610c-4d1c-932e-1d723ec83a3f',
+      client_secret:
+        'e1216de5437bcc4439511ec4c307daf4a7d8e5ff43a282c6699c1369af356f88',
+    };
   }
 
-  private clone(object) {
+  // Funcao temporaria (ateh migracao completa para V3)
+  get API_ACESSOS_V3() {
+    return 'https://v3-dot-silico-java.uc.r.appspot.com/acessos';
+  }
+
+  private clone(object: Record<string, unknown>) {
     // simple object clone
     return JSON.parse(JSON.stringify(object));
   }
 
-  public get modelNames() {
-    return {
-      // Nomes de modelos que sao utilizados na carga parcial
-      // Nestas cargas a propriedade precisa coincidir com o nome da tabela na carga parcial
-      par_venda: 'parVendas',
-      produto: 'produtos',
-      cliente: 'clientes',
-      pedido: 'pedidos',
-      desconto: 'descontos',
-      plano: 'planos',
-      preco: 'precos',
-      saldo: 'saldos',
-      estoque: 'estoques',
-      comissao: 'comissoes',
-      tipo_entrega: 'tiposEntrega',
-      operacao: 'operacoes',
-      carga: 'carga',
-      token: 'token',
-      // Nomes de modelos que nao sao utilizados na carga parcial (pode ser definido qualquer nome)
-      principais_produtos: 'principais_produtos',
-      tipo_entrega_capa: 'tiposEntregaCapa',
-    };
+  public modelNameByTableName(tableName: ModelNames): string {
+    return (ModelNames as any)[tableName];
   }
 
-  public modelNameByTableName(tableName: string) {
-    let modelNameRet = ''
-    switch (tableName) {
-      case 'par_venda': modelNameRet = 'parVendas'; break
-      case 'produto': modelNameRet = 'produtos'; break
-      case 'principais_produtos': modelNameRet = 'principais_produtos'; break
-      case 'cliente': modelNameRet = 'clientes'; break
-      case 'pedido': modelNameRet = 'pedidos'; break
-      case 'desconto': modelNameRet = 'descontos'; break
-      case 'plano': modelNameRet = 'planos'; break
-      case 'preco': modelNameRet = 'precos'; break
-      case 'saldo': modelNameRet = 'saldos'; break
-      case 'estoque': modelNameRet = 'estoques'; break
-      case 'comissao': modelNameRet = 'comissoes'; break
-      case 'tipo_entrega': modelNameRet = 'tiposEntrega'; break
-      case 'tipo_entrega_capa': modelNameRet = 'tiposEntregaCapa'; break
-      case 'operacao': modelNameRet = 'operacoes'; break
-    }
-    return modelNameRet
+  public isArray(val: any): val is any[] {
+    return Array.isArray(val);
   }
 
-  public isArray(val: any): val is any[] { return Array.isArray(val); }
-
-  public getFieldIdName(modelName: string) {
-    const modelNames = this.modelNames;
-    let fieldIdName: any = [];
-    switch (modelName) {
-      case modelNames.saldo:
-      case modelNames.cliente:
-        fieldIdName = ['codCliErp'];
+  public getModelKeys(modelNames: string) {
+    let keys: string[] = [];
+    switch (modelNames) {
+      case ModelNames.saldo:
+      case ModelNames.cliente:
+        keys = ['codCliErp'];
         break;
-      case modelNames.desconto:
-      case modelNames.preco:
-      case modelNames.produto:
-        fieldIdName = ['codCliErp', 'codProErp'];
+      case ModelNames.preco:
+        keys = ['codTabErp', 'codCliErp', 'codProErp'];
         break;
-      case modelNames.estoque:
-        fieldIdName = ['codCliErp', 'codProErp', 'dataEstoque'];
+      case ModelNames.desconto:
+      case ModelNames.produto:
+        keys = ['codCliErp', 'codProErp'];
         break;
-      case modelNames.pedido:
-        fieldIdName = ['codPedGuid'];
+      case ModelNames.estoque:
+        keys = ['codCliErp', 'codProErp', 'dataEstoque'];
         break;
-      case modelNames.plano:
-        fieldIdName = ['codPlaErp', 'codCliErp', 'codProErp', 'codFrmErp'];
+      case ModelNames.pedido:
+        keys = ['codPedGuid'];
+        break;
+      case ModelNames.plano:
+        keys = ['codPlaErp', 'codCliErp', 'codProErp', 'codFrmErp'];
         break;
       default:
         break;
     }
-    return fieldIdName;
+    return keys;
   }
 }

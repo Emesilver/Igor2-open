@@ -1,38 +1,35 @@
-import { Component, OnInit } from '@angular/core';
+import { Component } from '@angular/core';
 import { User } from '../models/user';
 import { Item } from '../models/item';
 import { LoaderProvider } from '../services/loader/loader';
 import { UserProvider } from '../services/user/user';
 import { ItemProvider } from '../services/item/item';
 import { ModalController, NavParams } from '@ionic/angular';
-import { Router } from '@angular/router';
-import { CustomHttpProvider } from '../services/custom-http/custom-http';
-import { CustomStorageProvider } from '../services/custom-storage/custom-storage';
 
 @Component({
   selector: 'app-select-item',
   templateUrl: './select-item.page.html',
   styleUrls: ['./select-item.page.scss'],
 })
-export class SelectItemPage implements OnInit {
-  user: User;
+export class SelectItemPage {
+  user!: User;
   pageNumber = 1;
-  items: Array<Item> = [];
-  itemsRendered: Array<Item> = [];
+
+  allItems: Item[] = [];
+  itemsFiltered: Item[] = [];
+  itemsRendering: Item[] = [];
+
   itemsPrincipais: Array<Item> = [];
   itemsPrincipaisRendered: Array<Item> = [];
-  codCliErp: string;
+  codCliErp!: string;
   constructor(
     private loaderProvider: LoaderProvider,
     private userProvider: UserProvider,
     private itemProvider: ItemProvider,
     private modalController: ModalController,
-    private navParams: NavParams,
+    private navParams: NavParams
   ) {
     this.init();
-  }
-
-  ngOnInit() {
   }
 
   async init() {
@@ -49,37 +46,40 @@ export class SelectItemPage implements OnInit {
       });
     }
 
-    this.items = await this.itemProvider.getLocalList();
-
+    this.allItems = await this.itemProvider.getLocalList();
     if (this.codCliErp) {
-      this.items = this.items.filter((record) => {
-        return (record.codCliErp === this.codCliErp || record.codCliErp === '');
+      this.allItems = this.allItems.filter((item) => {
+        return item.codCliErp === '' || item.codCliErp === this.codCliErp;
       });
     }
+    this.itemsFiltered = this.allItems;
 
     this.loaderProvider.close();
-    this.itemsRendered = this.paginate(this.items);
+    this.itemsRendering = this.paginate(1, this.itemsFiltered);
     this.itemsPrincipaisRendered = this.itemsPrincipais;
   }
 
-  getItems(ev: any) {
+  filterItems(text: string) {
     // no filtro zera os itensPrincipais
     this.itemsPrincipaisRendered = [];
-    let filtered = this.items;
-    const val = ev.target.value;
-    if (val && val.trim() !== '') {
-      filtered = filtered.filter((item) => {
-        return (item.descricao.toLowerCase().indexOf(val.toLowerCase()) > -1
-          || item.codProErp.indexOf(val) > -1);
+    this.pageNumber = 1;
+    const minChars = 2;
+    if (text && text.trim() !== '' && text.length >= minChars) {
+      this.itemsFiltered = this.allItems.filter((item) => {
+        const textLC = text.toLocaleLowerCase();
+        const itemDescLC = item.descricao.toLocaleLowerCase();
+        return (
+          textLC.split(' ').every((word) => itemDescLC.indexOf(word) > -1) ||
+          item.codProErp.indexOf(text) > -1
+        );
       });
     } else {
-      // retorna os itens principais quando limpa o filtro
-      this.itemsPrincipaisRendered = this.itemsPrincipais;
+      this.itemsFiltered = this.allItems;
     }
-    this.itemsRendered = filtered;
+    this.itemsRendering = this.paginate(this.pageNumber, this.itemsFiltered);
   }
 
-  select(item) {
+  select(item: Item) {
     this.modalController.dismiss({ item });
   }
 
@@ -87,23 +87,21 @@ export class SelectItemPage implements OnInit {
     this.modalController.dismiss({ item: null });
   }
 
-  paginate(array) {
-    let pageNumber = this.pageNumber;
-    --pageNumber;
-    return array.slice(pageNumber * 30, (pageNumber + 1) * 30);
+  private paginate(page: number, items: Item[]) {
+    return items.slice(page * 30 - 30, page * 30);
   }
 
-  loadData(event) {
+  loadData(event: { target: { complete: () => void; disabled: boolean } }) {
     setTimeout(() => {
       this.pageNumber++;
-      const dataPage = this.paginate(this.items);
-      for (const dataItem of dataPage) {
-        this.itemsRendered.push(dataItem);
-      }
+      this.itemsRendering = this.itemsRendering.concat(
+        this.paginate(this.pageNumber, this.itemsFiltered)
+      );
       event.target.complete();
-      if (this.itemsRendered.length === this.items.length) {
+
+      if (this.itemsRendering.length === this.itemsFiltered.length) {
         event.target.disabled = true;
       }
-    }, 500);
+    }, 300);
   }
 }

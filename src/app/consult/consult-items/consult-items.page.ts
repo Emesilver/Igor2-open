@@ -1,8 +1,6 @@
 import { Component, OnInit } from '@angular/core';
 import { Item } from 'src/app/models/item';
 import { LoaderProvider } from 'src/app/services/loader/loader';
-import { User } from 'src/app/models/user';
-import { UserProvider } from 'src/app/services/user/user';
 import { ItemProvider } from 'src/app/services/item/item';
 
 @Component({
@@ -11,70 +9,57 @@ import { ItemProvider } from 'src/app/services/item/item';
   styleUrls: ['./consult-items.page.scss'],
 })
 export class ConsultItemsPage implements OnInit {
-
-  items: Array<Item> = [];
-  itemsRendered: Array<Item> = [];
+  allItems: Item[] = [];
+  itemsFiltered: Item[] = [];
+  itemsRendering: Item[] = [];
   pageNumber = 1;
 
   constructor(
     private loaderProvider: LoaderProvider,
-    private userProvider: UserProvider,
-    private itemProvider: ItemProvider,
+    private itemProvider: ItemProvider
+  ) {}
 
-  ) { }
-
-  ngOnInit() {
+  async ngOnInit() {
     this.loaderProvider.show('Carregando produtos...');
-    this.userProvider.getUserLocal()
-    .then((user) => {
-      this.itemProvider.getLocalList()
-        .then((items) => {
-          this.items = items
-          this.itemsRendered = this.paginate(this.items)
-          this.loaderProvider.close()
-        })
-        .catch(() => {
-          this.loaderProvider.close()
-        })
-    })
-    .catch(() => {
-      this.loaderProvider.close()
-    })
+    this.allItems = await this.itemProvider.getLocalList();
+    this.itemsFiltered = this.allItems.slice(0, this.allItems.length);
+    this.itemsRendering = this.paginate(1, this.allItems);
+    this.loaderProvider.close();
   }
 
-  paginate(array: any[]) {
-    let pageNumber = this.pageNumber;
-    --pageNumber;
-    return array.slice(pageNumber * 30, (pageNumber + 1) * 30);
+  private paginate(page: number, items: Item[]) {
+    return items.slice(page * 30 - 30, page * 30);
   }
 
-  loadData(event: { target: { complete: () => void; disabled: boolean; }; }) {
+  loadData(event: { target: { complete: () => void; disabled: boolean } }) {
     setTimeout(() => {
       this.pageNumber++;
-      const dataPage = this.paginate(this.items);
-      for (const dataItem of dataPage) {
-        this.itemsRendered.push(dataItem);
-      }
+      this.itemsRendering = this.itemsRendering.concat(
+        this.paginate(this.pageNumber, this.itemsFiltered)
+      );
       event.target.complete();
-      if (this.itemsRendered.length === this.items.length) {
+
+      if (this.itemsRendering.length === this.itemsFiltered.length) {
         event.target.disabled = true;
       }
-    }, 500);
+    }, 300);
   }
 
-  filterItems(ev: any) {
-    this.itemsRendered = this.items
-    const val = ev.target.value
-    if (val && val.trim() !== '') {
-      const itensTmp = this.itemsRendered.filter((item) => {
-        return (item.descricao.toLowerCase().indexOf(val.toLowerCase()) > -1
-          || item.codProErp.indexOf(val) > -1);
-      })
-      this.itemsRendered = itensTmp
+  filterItems(text: string) {
+    this.pageNumber = 1;
+    const minChars = 2;
+    if (text && text.trim() !== '' && text.length >= minChars) {
+      this.itemsFiltered = this.allItems.filter((item) => {
+        const textLC = text.toLocaleLowerCase();
+        const itemDescLC = item.descricao.toLocaleLowerCase();
+        return (
+          textLC.split(' ').every((word) => itemDescLC.indexOf(word) > -1) ||
+          item.codProErp.indexOf(text) > -1
+        );
+      });
     } else {
-      this.itemsRendered = this.items
+      this.itemsFiltered = this.allItems;
     }
+    this.itemsRendering = this.paginate(this.pageNumber, this.itemsFiltered);
   }
-
-
 }

@@ -1,11 +1,14 @@
 <ion-content>
-  <img src="../../assets/close_red.png" alt="">
+  
   <h1>{{title}}</h1>
 
   <ion-list *ngFor="let error of errors">
-    <ion-item text-wrap>
-      ✕ {{error}}
-    </ion-item>
+    <ion-col>
+      <ion-icon name="alert-circle-outline" color="danger"></ion-icon>
+    </ion-col>
+    <ion-col>
+      <ion-label>{{error}}</ion-label>
+    </ion-col>
   </ion-list>
 
 </ion-content>

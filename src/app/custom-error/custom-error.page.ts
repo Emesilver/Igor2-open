@@ -1,12 +1,12 @@
 import { ModalController, NavParams } from '@ionic/angular';
-import { Component, OnInit } from '@angular/core';
+import { Component} from '@angular/core';
 
 @Component({
   selector: 'app-custom-error',
   templateUrl: './custom-error.page.html',
   styleUrls: ['./custom-error.page.scss'],
 })
-export class CustomErrorPage implements OnInit {
+export class CustomErrorPage {
   errors: Array<string> = [];
   title: string;
   constructor(
@@ -15,9 +15,6 @@ export class CustomErrorPage implements OnInit {
   ) {
     this.errors = this.navParams.get('errors');
     this.title = this.navParams.get('title');
-  }
-
-  ngOnInit() {
   }
 
   close() {

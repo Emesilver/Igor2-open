@@ -1,5 +1,3 @@
-// import { PaymentPlanProvider } from './../payment-plan/payment-plan';
-// import { CustomerProvider } from './../customer/customer';
 import { ItemProvider } from './../item/item';
 import { ToastProvider } from './../toast/toast';
 import { CustomStorageProvider } from '../custom-storage/custom-storage';
@@ -8,209 +6,190 @@ import { Order } from './../../models/order';
 import { OrderItem } from './../../models/order-item';
 import { Injectable } from '@angular/core';
 import { UtilProvider } from '../util/util';
-import { LogProvider } from '../log/log';
-import { sortBy as _sortBy, filter as _filter, remove as _remove } from 'lodash';
+//import { LogProvider } from '../log/log';
+import { sortBy as _sortBy, remove as _remove } from 'lodash';
 import * as moment from 'moment';
-import { AppState } from 'src/app/app.global';
-
+import { AppState, ModelNames, Properties } from 'src/app/app.global';
 
 @Injectable()
 export class OrderProvider {
-  headers: any = { 'Content-Type': 'application/json' };
-
   constructor(
     private utilProvider: UtilProvider,
     private global: AppState,
-    private logProvider: LogProvider,
+    //    private logProvider: LogProvider,
     private customHttpProvider: CustomHttpProvider,
     private customStorageProvider: CustomStorageProvider,
     private toastProvider: ToastProvider,
     private itemProvider: ItemProvider
-  ) { }
+  ) {}
 
-  getLocalList(): Promise<Array<Order>> {
-    return this.customStorageProvider.getLocal(this.global.modelNames.pedido + this.global.getProperty('idEmp'))
+  getOrders(): Promise<Order[]> {
+    return this.customStorageProvider.getLocal(
+      ModelNames.pedido + this.global.getProperty(Properties.ID_EMP)
+    );
   }
 
   async saveOrderDraft(order: Order) {
-    return new Promise<Order>(async resolve => {
-      const idEmp = this.global.getProperty('idEmp');
-      const orders: Array<Order> = (await this.getAllOrderDraft()) || [];
-      if (order.codPedGuid) {
-        // UPDATE
-        // Quando atualizar o rascunhho, atualizar a data do pedido
-        order.dataPed = moment().format(); // ('YYYY-MM-DD');
-        const oldOrder = orders.find((el) => {
-          return el.codPedGuid === order.codPedGuid;
-        });
+    const idEmp = this.global.getProperty(Properties.ID_EMP);
+    const orders = (await this.getDraftOrders()) || [];
+    if (order.codPedGuid) {
+      // UPDATE
+      // Quando atualizar o rascunhho, atualizar a data do pedido
+      order.dataPed = moment().format(); // ('YYYY-MM-DD');
+      const oldOrder = orders.find((el) => el.codPedGuid === order.codPedGuid);
 
-        if (oldOrder) {
-          _remove(orders, (recOrder) => {
-            return recOrder.codPedGuid === order.codPedGuid;
-          });
+      if (oldOrder) {
+        _remove(
+          orders,
+          (recOrder: Order) => recOrder.codPedGuid === order.codPedGuid
+        );
 
-          const o = Object.assign(oldOrder, order);
-          orders.unshift(o);
-          // this.storage.set('draft' + idEmp, orders);
-          this.customStorageProvider.saveLocal('draft' + idEmp, orders)
-          resolve(o);
-
-        } else {
-          this.logProvider
-            .save(`Erro ao encontrar pedido pelo UUID na edição do passo geral. UUID: ${order.codPedGuid}`);
-        }
+        const o = Object.assign(oldOrder, order);
+        orders.unshift(o);
+        this.customStorageProvider.saveLocal<Order>('draft' + idEmp, orders);
       } else {
-        // INSERT
-        order.codPedGuid = this.utilProvider.generateUUID();
-        orders.unshift(order);
-        this.customStorageProvider.saveLocal('draft' + idEmp, orders)
-        resolve(order);
+        // this.logProvider.save(
+        //   `Erro ao encontrar pedido pelo UUID na edição do passo geral. UUID: ${order.codPedGuid}`
+        // );
       }
-    });
+    } else {
+      // INSERT
+      order.codPedGuid = this.utilProvider.generateUUID();
+      orders.unshift(order);
+      this.customStorageProvider.saveLocal<Order>('draft' + idEmp, orders);
+    }
   }
 
-  getAllOrderDraft(): Promise<Array<Order>> {
-    // return new Promise(async (resolve) => {
-    //   resolve(await this.storage.get('draft' + this.global.getProperty('idEmp')));
-    // });
-    return this.customStorageProvider.getLocal('draft' + this.global.getProperty('idEmp'))
+  async getDraftOrders(): Promise<Order[]> {
+    return this.customStorageProvider.getLocal(
+      'draft' + this.global.getProperty(Properties.ID_EMP)
+    );
   }
 
-  async getDraftByUuidLocal(uuid: string) {
-    return new Promise<Order>(async (resolve) => {
-      const orders: Array<Order> = (await this.getAllOrderDraft()) || [];
-      resolve(orders.find((order) => order.codPedGuid === uuid));
-    });
+  async getDraftByUuidLocal(uuid: string): Promise<Order | undefined> {
+    const orders: Order[] = (await this.getDraftOrders()) || [];
+    return orders.find((order) => order.codPedGuid === uuid);
   }
 
-  async removeDraft(uuid) {
-    const drafts = await this.getAllOrderDraft();
-    drafts.splice(drafts.findIndex(x => x.codPedGuid === uuid), 1);
-    // await this.storage.set('draft' + this.global.getProperty('idEmp'), drafts);
-    await this.customStorageProvider.saveLocal('draft' + this.global.getProperty('idEmp'), drafts)
+  async removeDraft(uuid: string) {
+    const drafts = await this.getDraftOrders();
+    drafts.splice(
+      drafts.findIndex((x) => x.codPedGuid === uuid),
+      1
+    );
+    await this.customStorageProvider.saveLocal<Order>(
+      'draft' + this.global.getProperty(Properties.ID_EMP),
+      drafts
+    );
   }
 
-  saveBackend(order: Order) {
-    return new Promise(async (resolve, reject) => {
-      const idEmp = this.global.getProperty('idEmp')
-      const codRepErp = this.global.getProperty('codRepErp')
-      this.customHttpProvider.postObj(idEmp, codRepErp, this.global.modelNames.pedido, order)
-      .then(() => {
-        order.statusPed = 'ENV';
-        this.customStorageProvider.updateLocal(
+  async sendToSLC(order: Order) {
+    const idEmp = this.global.getProperty(Properties.ID_EMP) as string;
+    const codRepErp = this.global.getProperty(Properties.COD_REP_ERP) as string;
+    try {
+      await this.customHttpProvider.postObj(
+        idEmp,
+        codRepErp,
+        ModelNames.pedido,
+        order
+      );
+      order.statusPed = 'ENV';
+      try {
+        await this.customStorageProvider.updateLocal(
           order,
-          this.global.modelNames.pedido + idEmp,
-          this.global.getFieldIdName(this.global.modelNames.pedido)
-        ).then(() => {
-          this.removeDraft(
-            order.codPedGuid
-          ).then(() => {
-            resolve()
-          }).catch((error) => {
-            this.toastProvider.show('Falha ao remover rascunho do celular');
-            reject(error)
-          })
-        }).catch((error) => {
-          this.toastProvider.show('Falha ao atualizar o pedido no celular');
-          this.toastProvider.show(error.message);
-            reject(error)
-        })
-      })
-      .catch((error) => {
-        this.toastProvider.show('Não foi possível enviar o pedido agora, mas ele está salvo como rascunho. Tente novamente mais tarde.');
-        this.toastProvider.show(error.message);
-        reject(error);
-      })
-    });
-  }
-
-  async getLastOrderByCustomer(codCliErp, slice = 1) {
-    return new Promise<Order>(async resolve => {
-      // let orders = await this.storage.get(this.global.modelNames.pedido + this.global.getProperty('idEmp'));
-      let orders = await this.customStorageProvider.getLocal(this.global.modelNames.pedido + this.global.getProperty('idEmp'))
-      if (orders) {
-        orders = orders.filter(x => !!x.itens);
-        if (orders) {
-          orders = orders.filter(x => x.codCliErp === codCliErp);
-          orders = _sortBy(orders, (order: Order) => {
-            return new Date(order.dataPed);
-          }).reverse();
-
-          if (orders && orders.length > 0) {
-            if (slice === 1) {
-              resolve(orders[0]);
-              return;
-            } else {
-              resolve(orders.slice(0, slice));
-              return;
-            }
-          }
+          ModelNames.pedido + idEmp,
+          this.global.getModelKeys(ModelNames.pedido)
+        );
+        try {
+          await this.removeDraft(order.codPedGuid);
+        } catch (error) {
+          this.toastProvider.show('Falha ao remover rascunho do celular');
         }
+      } catch (error) {
+        this.toastProvider.show('Falha ao atualizar o pedido no celular');
       }
-
-      resolve();
-    });
+    } catch (error) {
+      this.toastProvider.show(
+        'Não foi possível enviar o pedido agora, mas ele está salvo como rascunho. Tente novamente mais tarde.'
+      );
+    }
   }
 
-  async getLastOrder() {
-    return new Promise<Order>(async resolve => {
-      let orders = await this.customStorageProvider.getLocal(this.global.modelNames.pedido + this.global.getProperty('idEmp'))
-      if (orders) {
-        orders = orders.filter(recOrder => !!recOrder.itens);
-        orders = _sortBy(orders, (order: Order) => {
-          return new Date(order.dataPed);
-        }).reverse();
+  async getLastCustomerOrders(
+    codCliErp: string,
+    qty: number
+  ): Promise<Order[]> {
+    const savedOrders = await this.getOrders();
+    if (savedOrders) {
+      const validSavedOrders = savedOrders.filter((x) => !!x.itens);
+      if (validSavedOrders) {
+        const customerOrders = validSavedOrders.filter(
+          (x) => x.codCliErp === codCliErp
+        );
+        const orderedCustomerOrders = _sortBy(
+          customerOrders,
+          (customerOrder: Order) => new Date(customerOrder.dataPed)
+        ).reverse();
 
-        if (orders && orders.length > 0) {
-          resolve(orders[0]);
-          return;
+        if (orderedCustomerOrders && orderedCustomerOrders.length > 0) {
+          return savedOrders.slice(0, qty);
         }
-      }
-      resolve();
-    });
-  }
-
-  getByDatePedPerMonth(month) {
-    return new Promise<any>(async resolve => {
-      let orders = await this.customStorageProvider.getLocal(this.global.modelNames.pedido + this.global.getProperty('idEmp'))
-      orders = _filter(orders, (o: Order) => {
-        return moment(o.dataPed, 'YYYY-MM-DD').month() === month;
-      });
-
-      resolve(orders);
-    });
-  }
-
-  itemExistInOrder(codProErp: string, itens: Array<OrderItem>): boolean {
-    let ret = false;
-    for (const item of itens) {
-      if (item.codProErp === codProErp) {
-        ret = true;
-        break;
       }
     }
-    return ret;
+    return [];
   }
 
-  getNewEmpty(codRepERP) {
+  async getLastOrder(): Promise<Order | undefined> {
+    const savedOrders = await this.getOrders();
+    if (savedOrders) {
+      const validSavedOrders = savedOrders.filter(
+        (savedOrder) => !!savedOrder.itens
+      );
+      const orderedOrders = _sortBy(
+        validSavedOrders,
+        (validOrder: Order) => new Date(validOrder.dataPed)
+      ).reverse();
+      if (orderedOrders && orderedOrders.length > 0) {
+        return orderedOrders[0];
+      }
+    }
+    return undefined;
+  }
+
+  async getByDatePedPerMonth(month: number) {
+    const savedOrders = await this.getOrders();
+    if (savedOrders) {
+      return savedOrders.filter(
+        (savedOrder) =>
+          moment(savedOrder.dataPed, 'YYYY-MM-DD').month() === month
+      );
+    }
+    return [];
+  }
+
+  itemExistInOrder(codProErp: string, itens: OrderItem[]): boolean {
+    return itens.some((item) => item.codProErp === codProErp);
+  }
+
+  getNewEmpty(codRepERP: string) {
     return new Order(
-      this.global.getProperty('idEmp'),
-      null,
+      this.global.getProperty(Properties.ID_EMP) as string,
+      0,
       '',
-      null,
+      '',
       'RAS', // Rascunho
-      null,
-      null,
+      '',
+      '',
       codRepERP,
-      null,
+      '',
       '',
       moment().format(), // ('YYYY-MM-DD'), // dataPed
-      null,
-      null,
-      null,
-      null,
-      null,
-      null,
+      0,
+      '',
+      '',
+      '',
+      '',
+      '',
       this.getDueDate(), //  Data Entrega
       0,
       0, // qtdTotal
@@ -220,35 +199,39 @@ export class OrderProvider {
       0,
       0,
       0,
-      null,
+      '',
       [],
       true,
       '',
-      null,
-      0
+      '',
+      0,
+      ''
     );
   }
 
   getNewOrderItemEmpty(newIdx: number): OrderItem {
     return new OrderItem(
       newIdx,
-      null,
-      null,
-      null,
+      '',
+      '',
+      '',
       0,
       0,
-      null,
-      0,
-      0,
-      0,
+      '',
       0,
       0,
       0,
       0,
       0,
-      null,
-      null,
-      0
+      0,
+      0,
+      0,
+      '',
+      '',
+      0,
+      '',
+      '',
+      ''
     );
   }
 
@@ -257,16 +240,13 @@ export class OrderProvider {
   }
 
   async fillItensProps(order: Order) {
-    order.itens.forEach(itemOrder => {
+    order.itens.forEach((itemOrder) => {
       itemOrder.codCliErp = order.codCliErp;
       const itemPromise = this.itemProvider.getByCodProErp(itemOrder.codProErp);
-      // itemOrder.descricao = itemDesc.descricao;
 
       itemPromise.then((res) => {
         itemOrder.descricao = res.descricao;
       });
-
     });
   }
-
 }

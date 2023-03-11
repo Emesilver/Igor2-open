@@ -1,51 +1,46 @@
 import { LoaderProvider } from './services/loader/loader';
 import { Component } from '@angular/core';
-
 import { Platform, MenuController } from '@ionic/angular';
 import { SplashScreen } from '@ionic-native/splash-screen/ngx';
 import { StatusBar } from '@ionic-native/status-bar/ngx';
 import { UserProvider } from './services/user/user';
 import { Router } from '@angular/router';
 import { SynchronizeProvider } from './services/synchronize/synchronize';
-import { firebaseConfig } from './app.global';
-import * as firebase from 'firebase/app';
 import { ToastProvider } from './services/toast/toast';
 import { Company } from './models/company';
-import { NetworkProvider } from './services/network/network';
 
 @Component({
   selector: 'app-root',
-  templateUrl: 'app.component.html'
+  templateUrl: 'app.component.html',
 })
 export class AppComponent {
   public appPages = [
     {
       title: 'Início',
       url: '/home',
-      icon: 'home'
+      icon: 'home',
     },
     {
       title: 'Clientes',
       url: '/customer-list',
-      icon: 'person'
+      icon: 'person',
     },
     {
       title: 'Pedidos',
       url: '/order-list',
-      icon: 'list'
+      icon: 'list',
     },
     {
       title: 'Sincronizar',
       url: '/synchronize',
-      icon: 'sync'
+      icon: 'sync',
     },
     {
       title: 'Política de Privacidade',
       url: '/politica',
-      icon: 'clipboard'
+      icon: 'clipboard',
     },
   ];
-//  hasNotification = false;
 
   constructor(
     private platform: Platform,
@@ -56,17 +51,15 @@ export class AppComponent {
     private loaderProvider: LoaderProvider,
     private synchronizeProvider: SynchronizeProvider,
     private menuCtrl: MenuController,
-    private toastProvider: ToastProvider,
-    private networkProvider: NetworkProvider,
+    private toastProvider: ToastProvider
   ) {
     this.initializeApp();
   }
 
   async initializeApp() {
     await this.platform.ready().then(() => {
-      this.statusBar.styleDefault()
-      this.splashScreen.hide()
-      this.networkProvider.startMonitoring()
+      this.statusBar.styleDefault();
+      this.splashScreen.hide();
     });
 
     this.platform.resume.subscribe(async () => {
@@ -75,33 +68,22 @@ export class AppComponent {
     });
 
     this.menuCtrl.enable(false, 'right');
-
-    // necessario para execucao do chat
-    firebase.initializeApp(firebaseConfig);
   }
 
   showVersion() {
-    this.toastProvider.show('Versão 2.4.5');
-    // alert('vai simular recebimento de notification')
-    // this.synchronizeStrategy('manual', 'A')
-}
+    this.toastProvider.show('Versão 2.6.18');
+  }
 
   logout() {
     this.userProvider.logout();
-//    if (this.platform.is('ios') || this.platform.is('android')) {
-//      const appLiteral = 'app';
-//      navigator[appLiteral].exitApp();
-//    } else {
     this.router.navigate(['/login']);
-//    }
   }
 
-  private async synchronizeStrategy(type, updateMode: string) {
+  private async synchronizeStrategy(type: string, updateMode: string) {
     setTimeout(async () => {
-      const companies = await this.userProvider.getLocalCompanies()
+      const companies = await this.userProvider.getLocalCompanies();
 
-      if (type === 'resume' /*&& this.hasNotification*/) {
-        // this.hasNotification = false;
+      if (type === 'resume') {
         this.synchronize(companies, updateMode);
       } else if (type === 'init') {
         this.synchronize(companies, updateMode);
@@ -119,10 +101,10 @@ export class AppComponent {
   private async synchronize(companies: Array<Company>, updateMode: string) {
     if (updateMode === 'C') {
       this.loaderProvider.show('Sincronizando dados...');
-      await this.synchronizeProvider.syncByCharge(companies)
+      await this.synchronizeProvider.syncByCharge(companies);
       this.loaderProvider.close();
     } else {
-      await this.synchronizeProvider.syncByCharge(companies)
+      await this.synchronizeProvider.syncByCharge(companies);
     }
   }
 }

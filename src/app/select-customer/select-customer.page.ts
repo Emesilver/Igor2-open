@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component } from '@angular/core';
 import { User } from '../models/user';
 import { Customer } from '../models/customer';
 import { ModalController } from '@ionic/angular';
@@ -10,8 +10,8 @@ import { LoaderProvider } from '../services/loader/loader';
   templateUrl: './select-customer.page.html',
   styleUrls: ['./select-customer.page.scss'],
 })
-export class SelectCustomerPage implements OnInit {
-  user: User;
+export class SelectCustomerPage {
+  user!: User;
   pageNumber = 1;
   customers: Array<Customer> = [];
   customersRendered: Array<Customer> = [];
@@ -20,56 +20,66 @@ export class SelectCustomerPage implements OnInit {
     private customerProvider: CustomerProvider,
     private userProvider: UserProvider,
     private loaderProvider: LoaderProvider,
-    private modalController: ModalController,
+    private modalController: ModalController
   ) {
     this.init();
   }
   async init() {
     this.loaderProvider.show('Carregando clientes...');
     this.user = await this.userProvider.getUserLocal();
-    this.customers = await this.customerProvider.getLocalList();
-//    this.customers = this.customers.filter(customer => customer.codCliErp != null && customer.codCliErp !== '');
+    this.customers = await this.customerProvider.getLocalCustomers();
     this.customersRendered = this.paginate(this.customers);
     this.loaderProvider.close();
   }
-  ngOnInit() {
-  }
+
   getItems(ev: any) {
     const val = ev.target.value;
-    if (val && val.trim() !== '') {
+    const minChars = (this.customers.length / 2 / 100) | 0;
+    if (val && val.trim() !== '' && val.length > minChars) {
       this.customersRendered = this.customers.filter((item) => {
-        return ((item.cpfCnpj +
-          item.fantasia +
-          item.razao +
-          item.cidade + '-' +
-          item.bairro).toLowerCase().indexOf(val.toLowerCase()) > -1);
+        return (
+          (
+            item.cpfCnpj +
+            item.fantasia +
+            item.razao +
+            item.cidade +
+            '-' +
+            item.bairro
+          )
+            .toLowerCase()
+            .indexOf(val.toLowerCase()) > -1
+        );
       });
     } else {
       this.pageNumber = 1;
       this.customersRendered = this.paginate(this.customers);
     }
   }
-  paginate(array) {
+
+  private paginate(array: Customer[]) {
     let pageNumber = this.pageNumber;
     --pageNumber;
     return array.slice(pageNumber * 30, (pageNumber + 1) * 30);
   }
-  loadData(event) {
+
+  loadData(event: any) {
     setTimeout(() => {
       this.pageNumber++;
-      const moreData = this.paginate(this.customers);
-      for (var index in moreData){
-        this.customersRendered.push(moreData[index]);
-      }
+      const customers = this.paginate(this.customers);
+      customers.forEach((customer) => {
+        this.customersRendered.push(customer);
+      });
       event.target.complete();
       if (this.customersRendered.length === this.customers.length) {
         event.target.disabled = true;
       }
     }, 500);
   }
-  select(customer) {
+
+  select(customer: Customer) {
     this.modalController.dismiss({ customer });
   }
+
   close() {
     this.modalController.dismiss({ customer: null });
   }

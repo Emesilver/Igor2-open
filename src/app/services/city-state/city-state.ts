@@ -2,6 +2,12 @@ import { Injectable } from '@angular/core';
 import { cities } from './cities';
 import { states } from './states';
 
+export interface IState {
+  id: string,
+  initials: string,
+  name: string,
+}
+
 @Injectable({
   providedIn: 'root'
 })
@@ -11,11 +17,11 @@ export class CityStateProvider {
 
   }
 
-  getStates() {
+  getStates(): IState[] {
     return states;
   }
 
-  getCitiesByUf(ufId) {
+  getCitiesByUf(ufId: string) {
     return cities.filter(x => x.state === ufId);
   }
 }

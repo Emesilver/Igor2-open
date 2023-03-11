@@ -1,50 +1,42 @@
-import { Storage } from '@ionic/storage';
 import { PaymentPlan } from './../../models/payment-plan';
-import { CustomHttpProvider } from './../custom-http/custom-http';
 import { Injectable } from '@angular/core';
-import { AppState } from 'src/app/app.global';
+import { AppState, ModelNames, Properties } from 'src/app/app.global';
+import { CustomStorageProvider } from '../custom-storage/custom-storage';
 
 @Injectable({
-  providedIn: 'root'
+  providedIn: 'root',
 })
 export class PaymentPlanProvider {
-
   constructor(
-    public global: AppState,
-    public storage: Storage,
-    public customHttpProvider: CustomHttpProvider,
-  ) { }
+    private global: AppState,
+    private customStorage: CustomStorageProvider
+  ) {}
 
-  getByIdLocal(id): Promise<PaymentPlan> {
-    return new Promise(async resolve => {
-      const companyId = this.global.getProperty('idEmp');
-      const paymentPlans: Array<PaymentPlan> = await this.storage.get(this.global.modelNames.plano + companyId);
-      let paymentPlan: any = paymentPlans.find(x => x.codPlaErp === id);
-      paymentPlan = paymentPlan ? paymentPlan : { codPlaErp: 0 };
-      resolve(paymentPlan);
-    });
+  async getPaymentPlan(id: string): Promise<PaymentPlan> {
+    const companyId = this.global.getProperty(Properties.ID_EMP);
+    const paymentPlans: PaymentPlan[] =
+      await this.customStorage.getLocal<PaymentPlan>(
+        ModelNames.plano + companyId
+      );
+    let paymentPlan: any = paymentPlans.find((x) => x.codPlaErp === id);
+    paymentPlan = paymentPlan ? paymentPlan : { codPlaErp: 0 };
+    return paymentPlan;
   }
 
-  async getByPriority(codCliErp: string, codRepErp: string) {
-    return new Promise<Array<PaymentPlan>>(async (resolve) => {
-      const idEmp = this.global.getProperty('idEmp');
-      const paymentPlans: Array<PaymentPlan> =
-        await this.storage.get(this.global.modelNames.plano + idEmp);
-      let paymentPlan = [];
-      if (paymentPlans) {
-        paymentPlan = paymentPlans.filter(p =>
-          ((p.codCliErp === codCliErp && p.codRepErp === codRepErp)
-            ||
-            (p.codCliErp === '' && p.codRepErp === '')
-            ||
-            (p.codCliErp === '' && p.codRepErp === codRepErp)
-            ||
-            (p.codCliErp === codCliErp && p.codRepErp === '')
-          )
-        );
-      }
-
-      resolve(paymentPlan);
-    });
+  async getByPriority(codCliErp: string) {
+    const idEmp = this.global.getProperty(Properties.ID_EMP);
+    const codRepErp = this.global.getProperty(Properties.COD_REP_ERP);
+    const paymentPlans: PaymentPlan[] =
+      await this.customStorage.getLocal<PaymentPlan>(ModelNames.plano + idEmp);
+    if (paymentPlans) {
+      return paymentPlans.filter(
+        (p) =>
+          (p.codCliErp === codCliErp && p.codRepErp === codRepErp) ||
+          (p.codCliErp === '' && p.codRepErp === '') ||
+          (p.codCliErp === '' && p.codRepErp === codRepErp) ||
+          (p.codCliErp === codCliErp && p.codRepErp === '')
+      );
+    }
+    return [];
   }
 }

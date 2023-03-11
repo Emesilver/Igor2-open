@@ -1,33 +1,31 @@
 import { Param } from '../../models/param';
-import { CustomHttpProvider } from '../custom-http/custom-http';
 import { Injectable } from '@angular/core';
-import { Storage } from '@ionic/storage';
-import { AppState } from 'src/app/app.global';
+import { AppState, ModelNames, Properties } from 'src/app/app.global';
+import { CustomStorageProvider } from '../custom-storage/custom-storage';
+import { PriorityProvider } from '../priority/priority';
 
 @Injectable({
-    providedIn: 'root'
+  providedIn: 'root',
 })
 export class ParamProvider {
-    constructor(
-        public customHttpProvider: CustomHttpProvider,
-        public global: AppState,
-        public storage: Storage
-    ) { }
+  constructor(
+    private global: AppState,
+    private customStorage: CustomStorageProvider,
+    private priorityProvider: PriorityProvider
+  ) {}
 
-    getByCustomer(codCliErp: string) {
-        return new Promise<Param>(async (resolve) => {
-            const idEmp = this.global.getProperty('idEmp');
-            const params: Array<Param> =
-                await this.storage.get(this.global.modelNames.par_venda + idEmp);
-            let param: Param = null;
-            if (params) {
-                param = params.find(par => par.codCliErp === codCliErp);
-                if (!param) {
-                    param = params.find(par => par.codCliErp === '');
-                }
-            }
-            resolve(param);
-        });
+  async getParamByCustomer(codCliErp: string) {
+    const idEmp = this.global.getProperty(Properties.ID_EMP);
+    const params: Param[] = await this.customStorage.getLocal<Param>(
+      ModelNames.par_venda + idEmp
+    );
+    const paramsCli = this.priorityProvider.filterByPriorityRC(
+      params,
+      codCliErp
+    );
+    if (params.length > 0) {
+      return paramsCli[0];
     }
+    return new Param(+idEmp, '', '', '00:00:00', '23:59:59');
+  }
 }
-

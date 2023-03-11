@@ -1,5 +1,5 @@
 import { CUSTOM_ELEMENTS_SCHEMA } from '@angular/core';
-import { async, ComponentFixture, TestBed } from '@angular/core/testing';
+import { ComponentFixture, TestBed, waitForAsync } from '@angular/core/testing';
 
 import { CustomerLimitPage } from './customer-limit.page';
 
@@ -7,7 +7,7 @@ describe('CustomerLimitPage', () => {
   let component: CustomerLimitPage;
   let fixture: ComponentFixture<CustomerLimitPage>;
 
-  beforeEach(async(() => {
+  beforeEach(waitForAsync(() => {
     TestBed.configureTestingModule({
       declarations: [ CustomerLimitPage ],
       schemas: [CUSTOM_ELEMENTS_SCHEMA],

@@ -1,19 +1,27 @@
-import { Component, OnInit } from '@angular/core';
+import { Component } from '@angular/core';
 import { ModalController, NavParams } from '@ionic/angular';
 import { CustomerProvider } from '../services/customer/customer';
 import { LoaderProvider } from '../services/loader/loader';
 import { ToastProvider } from '../services/toast/toast';
 
+export interface CustomerLimit {
+  idEmp: number;
+  codCliErp: string;
+  codRepErp: string;
+  limit: string;
+  credit: string;
+  limiteTotal: number;
+}
 @Component({
   selector: 'app-customer-limit',
   templateUrl: './customer-limit.page.html',
   styleUrls: ['./customer-limit.page.scss'],
 })
-export class CustomerLimitPage implements OnInit {
+export class CustomerLimitPage {
   limiteTotal: string;
   credito: string;
   novoLimite: string;
-  customer;
+  customerLimit: CustomerLimit;
   constructor(
     public navParams: NavParams,
     private modalController: ModalController,
@@ -21,12 +29,10 @@ export class CustomerLimitPage implements OnInit {
     public loaderProvider: LoaderProvider,
     public toastProvider: ToastProvider
   ) {
-    this.customer = this.navParams.get('customer');
-    this.limiteTotal = this.customer.limit;
-    this.credito = this.customer.credit;
-  }
-
-  ngOnInit() {
+    this.novoLimite = '';
+    this.customerLimit = this.navParams.get('customerLimit');
+    this.limiteTotal = this.customerLimit.limit;
+    this.credito = this.customerLimit.credit;
   }
 
   close() {
@@ -38,22 +44,28 @@ export class CustomerLimitPage implements OnInit {
   }
 
   async requestLimit() {
-    if (parseInt(this.novoLimite, 10) > (parseInt(this.limiteTotal, 10) - parseInt(this.credito, 10))) {
+    if (
+      parseInt(this.novoLimite, 10) >
+      parseInt(this.limiteTotal, 10) - parseInt(this.credito, 10)
+    ) {
       this.loaderProvider.show('Solicitando aumento...');
       try {
-        this.customer.limiteTotal = this.novoLimite;
-        await this.customerProvider.saveLimitUpdate(this.customer);
+        this.customerLimit.limiteTotal = +this.novoLimite;
+        await this.customerProvider.saveLimitUpdate(this.customerLimit);
         this.loaderProvider.close();
         this.toastProvider.show('Solicitação feita com sucesso!');
         this.close();
       } catch (error) {
-        console.log(error);
         this.loaderProvider.close();
-        this.toastProvider.show('Não foi possível solicitar o aumento.');
+        this.toastProvider.show(
+          'Não foi possível solicitar o aumento agora. Tente mais tarde.'
+        );
         this.close();
       }
     } else {
-      this.toastProvider.show('Informe um valor maior que o valor utilizado para solicitar o aumento!');
+      this.toastProvider.show(
+        'Informe um valor maior que o valor utilizado para solicitar o aumento!'
+      );
     }
   }
 }

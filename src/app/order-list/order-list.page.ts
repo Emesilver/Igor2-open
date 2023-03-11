@@ -12,16 +12,16 @@ import { AlertController } from '@ionic/angular';
   styleUrls: ['./order-list.page.scss'],
 })
 export class OrderListPage implements OnInit {
-  orders: Array<Order>;
-  ordersFiltered: Array<Order>;
-  draftOrders: Array<Order>;
+  orders!: Array<Order>;
+  ordersFiltered!: Array<Order>;
+  draftOrders!: Array<Order>;
   constructor(
     private router: Router,
     private loaderProvider: LoaderProvider,
     private alertCtrl: AlertController,
     private orderProvider: OrderProvider,
-    private userProvider: UserProvider,
-  ) { }
+    private userProvider: UserProvider
+  ) {}
 
   ngOnInit() {
     this.init();
@@ -30,8 +30,8 @@ export class OrderListPage implements OnInit {
   async init() {
     await this.loaderProvider.show('Carregando Pedidos...');
     // const user = await this.userProvider.getUserLocal();
-    this.draftOrders = await this.orderProvider.getAllOrderDraft();
-    this.orders = await this.orderProvider.getLocalList();
+    this.draftOrders = await this.orderProvider.getDraftOrders();
+    this.orders = await this.orderProvider.getOrders();
     this.ordersFiltered = this.orders;
     await this.loaderProvider.close();
   }
@@ -50,9 +50,12 @@ export class OrderListPage implements OnInit {
     const val = ev.target.value;
     if (val && val.trim() !== '') {
       this.ordersFiltered = this.orders.filter((item) => {
-        return (item.dataPed.toLowerCase().indexOf(val.toLowerCase()) > -1 ||
-          (item.codPedErp && item.codPedErp.toLowerCase().indexOf(val.toLowerCase()) > -1) ||
-          (item.desCli && item.desCli.toLowerCase().indexOf(val.toLowerCase()) > -1)
+        return (
+          item.dataPed.toLowerCase().indexOf(val.toLowerCase()) > -1 ||
+          (item.codPedErp &&
+            item.codPedErp.toLowerCase().indexOf(val.toLowerCase()) > -1) ||
+          (item.desCli &&
+            item.desCli.toLowerCase().indexOf(val.toLowerCase()) > -1)
         );
       });
     } else {
@@ -62,12 +65,12 @@ export class OrderListPage implements OnInit {
 
   goToOrderPage(isView: boolean, order: Order) {
     const extras: NavigationExtras = {
-      state: { isView, order }
+      state: { isView, order },
     };
     this.router.navigate(['/order-general-form'], extras);
   }
 
-  async confirmRemoveDraft(uuid) {
+  async confirmRemoveDraft(uuid: string) {
     const alert = await this.alertCtrl.create({
       header: 'Deletar rascunho.',
       message: 'Deseja excluir esse rascunho?',
@@ -76,22 +79,26 @@ export class OrderListPage implements OnInit {
           text: 'Cancelar',
           role: 'cancel',
           handler: () => {
-          }
+            return undefined;
+          },
         },
         {
           text: 'Deletar',
           handler: () => {
             this.removeDraft(uuid);
-          }
-        }
-      ]
+          },
+        },
+      ],
     });
     alert.present();
   }
 
-  async removeDraft(guid) {
+  async removeDraft(guid: string) {
     await this.orderProvider.removeDraft(guid);
-    this.draftOrders.splice(this.draftOrders.findIndex(x => x.codPedGuid === guid), 1);
+    this.draftOrders.splice(
+      this.draftOrders.findIndex((x) => x.codPedGuid === guid),
+      1
+    );
   }
 
   // close() {

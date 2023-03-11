@@ -2,7 +2,6 @@ import { Component, OnInit } from '@angular/core';
 import { SelectCustomerPage } from 'src/app/select-customer/select-customer.page';
 import { ModalController } from '@ionic/angular';
 import { Order } from 'src/app/models/order';
-import { UserProvider } from 'src/app/services/user/user';
 import { OrderProvider } from 'src/app/services/order/order';
 import { Router, NavigationExtras } from '@angular/router';
 
@@ -12,48 +11,45 @@ import { Router, NavigationExtras } from '@angular/router';
   styleUrls: ['./consult-orders.page.scss'],
 })
 export class ConsultOrdersPage implements OnInit {
-
-  orders: Array<Order>
-  ordersFiltered: Array<Order>
-  customerName = ''
+  orders!: Array<Order>;
+  ordersFiltered!: Array<Order>;
+  customerName = '';
 
   constructor(
     private modalController: ModalController,
-    private userProvider: UserProvider,
     private orderProvider: OrderProvider,
-    private router: Router,
-    ) {
-
-  }
+    private router: Router
+  ) {}
 
   ngOnInit() {
-    this.doSelectCustomer()
+    this.doSelectCustomer();
   }
 
   async doSelectCustomer() {
     const modal = await this.modalController.create({
-      component: SelectCustomerPage
+      component: SelectCustomerPage,
     });
-    const user = await this.userProvider.getUserLocal();
-    this.orders = await this.orderProvider.getLocalList();
+    this.orders = await this.orderProvider.getOrders();
     modal.present();
     modal.onDidDismiss().then((response) => {
       if (response.data.customer) {
         // Se selecionou um cliente eu faco o filtro aqui
         const codCliErp = response.data.customer.codCliErp;
-        this.customerName = response.data.customer.cpfCnpj + ' - ' + response.data.customer.fantasia;
-        this.ordersFiltered = this.orders.filter((order: Order) => {
-          return (order.codCliErp === codCliErp)
-        })
+        this.customerName =
+          response.data.customer.cpfCnpj +
+          ' - ' +
+          response.data.customer.fantasia;
+        this.ordersFiltered = this.orders.filter(
+          (order: Order) => order.codCliErp === codCliErp
+        );
       }
     });
   }
 
   goToOrderPage(isView: boolean, order: Order) {
     const extras: NavigationExtras = {
-      state: { isView, order }
+      state: { isView, order },
     };
     this.router.navigate(['/order-general-form'], extras);
   }
-
 }

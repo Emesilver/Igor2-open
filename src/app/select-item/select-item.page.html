@@ -8,7 +8,7 @@
     </ion-buttons>
   </ion-toolbar>
   <ion-toolbar color="primary">
-    <ion-searchbar (ionInput)="getItems($event)" placeholder="Pesquisar"></ion-searchbar>
+    <ion-searchbar (ionInput)="filterItems($event.target.value)" placeholder="Pesquisar"></ion-searchbar>
   </ion-toolbar>
 </ion-header>
 
@@ -20,7 +20,7 @@
     </ion-item>
   </ion-list>
   <ion-list>
-    <ion-item *ngFor="let item of itemsRendered" (click)="select(item)">
+    <ion-item *ngFor="let item of itemsRendering" (click)="select(item)">
       <ion-label>{{item.codProErp}}-{{item.descricao}}</ion-label>
     </ion-item>
   </ion-list>

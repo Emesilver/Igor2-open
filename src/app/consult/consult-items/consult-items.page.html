@@ -9,13 +9,13 @@
   </ion-toolbar>
 
   <ion-toolbar color="primary">
-    <ion-searchbar (ionInput)="filterItems($event)" placeholder="Pesquisar"></ion-searchbar>
+    <ion-searchbar (ionInput)="filterItems($event.target.value)" placeholder="Pesquisar"></ion-searchbar>
   </ion-toolbar>
 </ion-header>
 
 <ion-content>
   <ion-list>
-    <ion-item *ngFor="let item of itemsRendered">
+    <ion-item *ngFor="let item of itemsRendering">
       <ion-label>
         {{item.codProErp}}-{{item.descricao}}
         <p>{{item.unidade}}</p>
@@ -29,7 +29,7 @@
 
     <ion-button fill="solid">
       <ion-icon slot="end" name="albums-outline"></ion-icon>
-      Quantidade de produtos filtrados {{itemsRendered.length}}
+      Quantidade de produtos filtrados {{itemsFiltered.length}}
     </ion-button>
 
 </ion-content>

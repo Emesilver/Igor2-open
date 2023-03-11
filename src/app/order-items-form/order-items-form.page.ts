@@ -1,9 +1,7 @@
-import { Component, OnInit } from '@angular/core';
-import { ActivatedRoute, Router, NavigationExtras } from '@angular/router';
+import { Component } from '@angular/core';
+import { Router, NavigationExtras } from '@angular/router';
 import { OrderHandleType, Order } from '../models/order';
 import { OrderProvider } from '../services/order/order';
-import { ItemProvider } from '../services/item/item';
-import { ToastProvider } from '../services/toast/toast';
 import { OrderItem } from '../models/order-item';
 import { Location } from '@angular/common';
 import { AlertController } from '@ionic/angular';
@@ -13,25 +11,23 @@ import { AlertController } from '@ionic/angular';
   templateUrl: './order-items-form.page.html',
   styleUrls: ['./order-items-form.page.scss'],
 })
-export class OrderItemsFormPage implements OnInit {
+export class OrderItemsFormPage {
   itens: Array<OrderItem> = [];
-  orderWrk: Order;
-  orderHandleType: OrderHandleType;
+  orderWrk!: Order;
+  orderHandleType!: OrderHandleType;
   draft: any;
   isDraft = false;
   title = 'Pedido - Itens';
   constructor(
     private router: Router,
-    private route: ActivatedRoute,
     private orderProvider: OrderProvider,
-    private itemProvider: ItemProvider,
-    private toastProvider: ToastProvider,
     private location: Location,
     private alertCtrl: AlertController
   ) {
-    if (this.router.getCurrentNavigation().extras.state) {
-      this.orderWrk = this.router.getCurrentNavigation().extras.state.orderWrk;
-      this.orderHandleType = this.router.getCurrentNavigation().extras.state.orderHandleType;
+    const navigation = this.router.getCurrentNavigation();
+    if (navigation?.extras.state) {
+      this.orderWrk = navigation.extras.state['orderWrk'];
+      this.orderHandleType = navigation.extras.state['orderHandleType'];
       this.loadingOrder();
     }
   }
@@ -50,8 +46,6 @@ export class OrderItemsFormPage implements OnInit {
     }
   }
 
-  ngOnInit() { }
-
   ionViewWillEnter() {
     if (this.orderWrk) {
       this.loadingOrder();
@@ -62,7 +56,7 @@ export class OrderItemsFormPage implements OnInit {
     const navigationExtras: NavigationExtras = {
       queryParams: {
         params: JSON.stringify(params),
-      }
+      },
     };
     this.router.navigate([page], navigationExtras);
   }
@@ -74,10 +68,10 @@ export class OrderItemsFormPage implements OnInit {
   next() {
     const navigationExtras: NavigationExtras = {
       state: {
-        isView: (this.orderHandleType === OrderHandleType.view),
+        isView: this.orderHandleType === OrderHandleType.view,
         orderWrk: this.orderWrk,
-        orderHandleType: this.orderHandleType
-      }
+        orderHandleType: this.orderHandleType,
+      },
     };
     this.router.navigate(['/order-finish-form'], navigationExtras);
   }
@@ -87,8 +81,8 @@ export class OrderItemsFormPage implements OnInit {
       state: {
         orderWrk: this.orderWrk,
         orderHandleType: this.orderHandleType,
-        orderItemHandleType: OrderHandleType.new
-      }
+        orderItemHandleType: OrderHandleType.new,
+      },
     };
     this.router.navigate(['/order-item-form'], navigationExtras);
   }
@@ -102,13 +96,13 @@ export class OrderItemsFormPage implements OnInit {
         orderWrk: this.orderWrk,
         orderHandleType: this.orderHandleType,
         orderItemHandleType: OrderHandleType.edit,
-        idxEditing: orderItemWrk.idxItem
-      }
+        idxEditing: orderItemWrk.idxItem,
+      },
     };
     this.router.navigate(['/order-item-form'], navigationExtras);
   }
 
-  async remove(idx) {
+  async remove(idx: number) {
     const confirm = await this.alertCtrl.create({
       header: 'Deletar item?',
       message: 'Deseja remover este item do pedido?',
@@ -116,7 +110,8 @@ export class OrderItemsFormPage implements OnInit {
         {
           text: 'Cancelar',
           handler: () => {
-          }
+            return undefined;
+          },
         },
         {
           text: 'Remover',
@@ -124,9 +119,9 @@ export class OrderItemsFormPage implements OnInit {
             this.orderWrk.totalPedido -= this.orderWrk.itens[idx].totalItem;
             this.orderWrk.itens.splice(idx, 1);
             await this.orderProvider.saveOrderDraft(this.orderWrk);
-          }
-        }
-      ]
+          },
+        },
+      ],
     });
     confirm.present();
   }

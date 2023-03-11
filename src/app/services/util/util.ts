@@ -1,15 +1,9 @@
 import { Injectable } from '@angular/core';
-import { Storage } from '@ionic/storage';
 
 @Injectable({
-  providedIn: 'root'
+  providedIn: 'root',
 })
 export class UtilProvider {
-
-  constructor(
-    public storage: Storage,
-  ) { }
-
   generateUUID() {
     return this.guid();
   }
@@ -20,8 +14,19 @@ export class UtilProvider {
         .toString(16)
         .substring(1);
     }
-    return s4() + s4() + '-' + s4() + '-' + s4() + '-' +
-      s4() + '-' + s4() + s4() + s4();
+    return (
+      s4() +
+      s4() +
+      '-' +
+      s4() +
+      '-' +
+      s4() +
+      '-' +
+      s4() +
+      '-' +
+      s4() +
+      s4() +
+      s4()
+    );
   }
-
 }

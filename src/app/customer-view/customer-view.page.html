@@ -16,7 +16,7 @@
 </ion-segment>
 
 <ion-content>
-  <form [formGroup]="customerForm">
+  <form [formGroup]="customerForm" [hidden]="view == 'historic'">
     <ion-list>
       <ion-row>
         <ion-col>
@@ -61,6 +61,18 @@
           <ion-item>
             <div class="item-inner">
               <div class="item-wrapper">
+                <ion-label stacked>Inscrição Estadual</ion-label>
+                <ion-input type="text" [readonly]="true" formControlName="insEstadual"></ion-input>
+              </div>
+            </div>
+          </ion-item>
+        </ion-col>
+      </ion-row>
+      <ion-row>
+        <ion-col>
+          <ion-item>
+            <div class="item-inner">
+              <div class="item-wrapper">
                 <ion-label stacked>Nome contato</ion-label>
                 <ion-input type="text" [readonly]="true" formControlName="contato1"></ion-input>
               </div>
@@ -73,7 +85,7 @@
           <ion-item>
             <div class="item-inner">
               <div class="item-wrapper">
-                <ion-label stacked>Telefone do contato</ion-label>
+                <ion-label stacked>Celular/Telefone do contato</ion-label>
                 <ion-input type="tel" [readonly]="true" formControlName="foneContato1"></ion-input>
               </div>
             </div>
@@ -230,6 +242,11 @@
     </ion-list>
   </form>
   <ion-list [hidden]="view !== 'historic'">
+    <ion-item>
+      <ion-label color="primary">
+        <h2>Últimas Compras</h2>
+      </ion-label>
+    </ion-item>
     <ion-row>
       <ion-col col-6 class="form-col">
         <ion-item>
@@ -274,22 +291,73 @@
         </ion-item>
       </ion-col>
     </ion-row>
+
+    <ion-item>
+      <ion-label color="primary">
+        <h2>Títulos</h2>
+      </ion-label>
+    </ion-item>
+
+    <ion-grid>
     <ion-row>
-      <ion-col col-12 class="form-col">
+      <ion-col>
         <ion-item>
-          <div class="item-inner">
-            <div class="item-wrapper">
-              <ion-label stacked>Contato</ion-label>
-              <ion-input type="text" readonly></ion-input>
-            </div>
-          </div>
+          <ion-label><p>Referência</p></ion-label>
         </ion-item>
       </ion-col>
+
+      <ion-col>
+        <ion-item>
+          <ion-label><p>Vencto</p></ion-label>
+        </ion-item>
+      </ion-col>
+
+      <ion-col>
+        <ion-item>
+          <ion-label><p>Valor</p></ion-label>
+        </ion-item>
+      </ion-col>      
+    </ion-row>
+    </ion-grid>
+    <ion-row *ngFor="let title of titles">
+      <ion-grid>
+      <ion-row>
+        <ion-col>
+          <ion-item>
+            <ion-label>{{title.referencia}}</ion-label>
+          </ion-item>
+        </ion-col>
+
+        <ion-col>
+          <ion-item>
+            <ion-label>{{title.dataVencto | date:'dd/MM/yyyy'}}</ion-label>
+          </ion-item>
+        </ion-col>
+
+        <ion-col>
+          <ion-item>
+            <ion-label>{{title.valorOriginal.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}}</ion-label>
+          </ion-item>
+        </ion-col>
+      </ion-row>
+      </ion-grid>
+
+      <!--ion-grid>
+      <ion-row>
+        <ion-col size="8">
+          <ion-item>
+            <ion-text color="medium">
+              <p>{{title.obs}}</p>
+            </ion-text>
+          </ion-item>
+        </ion-col>
+      </ion-row>
+      </ion-grid-->
     </ion-row>
   </ion-list>
 </ion-content>
 
-<ion-footer>
+<ion-footer [hidden]="view == 'historic'">
   <ion-toolbar>
     <ion-grid>
       <ion-row>

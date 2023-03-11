@@ -1,47 +1,102 @@
-import { CustomHttpProvider } from './../custom-http/custom-http';
 import { Injectable } from '@angular/core';
 import { Price } from '../../models/price';
-import { Storage } from '@ionic/storage';
-import { AppState } from 'src/app/app.global';
+import { AppState, ModelNames, Properties } from 'src/app/app.global';
+import { CustomStorageProvider } from '../custom-storage/custom-storage';
 
-/*
-  Generated class for the PriceProvider provider.
-
-  See https://angular.io/guide/dependency-injection for more info on providers
-  and Angular DI.
-*/
 @Injectable()
 export class PriceProvider {
-
+  private pricesClient: Price[] = [];
+  private pricesProdCache: Price[] = [];
+  private lastClient = '';
+  private lastProd = '';
   constructor(
-    public global: AppState,
-    public storage: Storage,
-    public customHttpProvider: CustomHttpProvider,
-  ) { }
+    private global: AppState,
+    private customStorage: CustomStorageProvider
+  ) {}
 
-  getByPriority(codTabErp: string, codProErp: string, codCliErp: string, codRepErp: string) {
-    return new Promise<Price>(async (resolve) => {
-      const idEmp = this.global.getProperty('idEmp');
-      const prices: Array<Price> =
-        await this.storage.get(this.global.modelNames.preco + idEmp);
-
-      // na ordem de prioridade: produto/cliente, produto/representante e apenas produto.
-      let price = prices.find(prc =>
-        prc.codTabErp === codTabErp && prc.codProErp === codProErp && prc.codCliErp === codCliErp
+  async buildPricesClient(codTabErp: string, codCliErp: string) {
+    if (codCliErp !== this.lastClient || !this.pricesClient.length) {
+      const idEmp = this.global.getProperty(Properties.ID_EMP);
+      const codRepErp = this.global.getProperty(Properties.COD_REP_ERP);
+      const precos = await this.customStorage.getLocal<Price>(
+        ModelNames.preco + idEmp
       );
+      this.pricesClient = precos.filter(
+        (price) =>
+          (!price.codTabErp || price.codTabErp == codTabErp) &&
+          (!price.codRepErp || price.codRepErp === codRepErp) &&
+          (!price.codCliErp || price.codCliErp === codCliErp)
+      );
+      this.lastClient = codCliErp;
+      // Invalidar cache de precos por produto
+      this.pricesProdCache = [];
+    }
+  }
+  async getProdPriceList(
+    codTabErp: string,
+    codProErp: string,
+    codCliErp: string
+  ) {
+    await this.buildPricesClient(codTabErp, codCliErp);
+    if (this.lastProd !== codProErp || !this.pricesProdCache.length) {
+      this.pricesProdCache = this.pricesClient.filter(
+        (price) => price.codProErp === codProErp
+      );
+    }
+    return this.pricesProdCache;
+  }
 
-      if (!price) {
-        price = prices.find(prc =>
-          prc.codTabErp === codTabErp && prc.codProErp === codProErp && prc.codRepErp === codRepErp
-        );
-      }
-      if (!price) {
-        price = prices.find(prc =>
-          prc.codTabErp === codTabErp && prc.codProErp === codProErp && prc.codRepErp === '' &&
-          prc.codCliErp === ''
-        );
-      }
-      resolve(price);
-    });
+  async getMinQtd(codTabErp: string, codProErp: string, codCliErp: string) {
+    const pricesProd = await this.getProdPriceList(
+      codTabErp,
+      codProErp,
+      codCliErp
+    );
+    if (!pricesProd.length) {
+      return 0;
+    }
+    return pricesProd.reduce(
+      (min, price) => (price.qtdeMin < min ? price.qtdeMin : min),
+      999
+    );
+  }
+
+  async getByPriority(
+    codTabErp: string,
+    codProErp: string,
+    codCliErp: string,
+    qtde: number
+  ) {
+    const codRepErp = this.global.getProperty(Properties.COD_REP_ERP);
+    // na ordem de prioridade: produto/cliente, produto/representante e apenas produto.
+    const pricesProd = await this.getProdPriceList(
+      codTabErp,
+      codProErp,
+      codCliErp
+    );
+    let price = pricesProd.find(
+      (prc) =>
+        prc.codCliErp === codCliErp &&
+        prc.qtdeMin <= qtde &&
+        prc.qtdeMax >= qtde
+    );
+    if (!price) {
+      price = pricesProd.find(
+        (prc) =>
+          prc.codRepErp === codRepErp &&
+          prc.qtdeMin <= qtde &&
+          prc.qtdeMax >= qtde
+      );
+    }
+    if (!price) {
+      price = pricesProd.find(
+        (prc) =>
+          prc.codRepErp === '' &&
+          prc.codCliErp === '' &&
+          prc.qtdeMin <= qtde &&
+          prc.qtdeMax >= qtde
+      );
+    }
+    return price;
   }
 }

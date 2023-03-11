@@ -1,5 +1,5 @@
 import { Component, OnInit } from '@angular/core';
-import { CityStateProvider } from '../services/city-state/city-state';
+import { CityStateProvider, IState } from '../services/city-state/city-state';
 import { ModalController } from '@ionic/angular';
 
 @Component({
@@ -8,7 +8,7 @@ import { ModalController } from '@ionic/angular';
   styleUrls: ['./select-state.page.scss'],
 })
 export class SelectStatePage implements OnInit {
-  states: Array<any> = [];
+  states: Array<IState> = [];
   constructor(
     private cityStateProvider: CityStateProvider,
     private modalController: ModalController
@@ -18,7 +18,7 @@ export class SelectStatePage implements OnInit {
     this.states = this.cityStateProvider.getStates();
   }
 
-  selected(state) {
+  selected(state: IState) {
     this.modalController.dismiss({ state: state });
   }
 

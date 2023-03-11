@@ -1,270 +1,247 @@
 import { ToastProvider } from './../toast/toast';
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-// import { NetworkProvider } from '../network/network';
 import { UrlHelperProvider } from '../url-helper/url-helper';
 import _ from 'lodash';
-import { AppState } from 'src/app/app.global';
+import { AppState, ModelNames, Properties } from 'src/app/app.global';
 import { CustomStorageProvider } from '../custom-storage/custom-storage';
 import { Company } from 'src/app/models/company';
-// import { analytics } from 'firebase';
 
+interface OAuth2Token {
+  access_token: string;
+  token_type: string;
+  expires_in: number;
+}
 @Injectable({
-  providedIn: 'root'
+  providedIn: 'root',
 })
 export class CustomHttpProvider {
-
   constructor(
     private httpClient: HttpClient,
-//    private storage: Storage,
     private global: AppState,
     private urlHelperProvider: UrlHelperProvider,
     private toastProvider: ToastProvider,
-    // private networkProvider: NetworkProvider,
-    private customStorageProvider: CustomStorageProvider,
-    ) {
+    private customStorageProvider: CustomStorageProvider
+  ) {}
+
+  async getAccessCompanies(docOrEmail: string): Promise<Company[] | undefined> {
+    const endPoint = `${this.global.API_ACESSOS_V3}/${docOrEmail}`;
+    try {
+      const companies = (await this.getObjURL(endPoint)) as Company[];
+      return companies;
+    } catch (error) {
+      this.toastProvider.show(
+        'Não foi possível ler os acessos agora. Preciso de internet!'
+      );
+    }
+    return undefined;
   }
 
-  getAccessCompanies(docOrEmail: string): Promise<Array<Company>> {
-    return new Promise((resolve, reject) => {
-      const online = this.global.getProperty('online')
-      if (online) {
-        const endPoint = `${this.global.API_URL}/acessos/${docOrEmail}`
-        this.getObjURL(endPoint)
-        .then((dataReturned) => {
-          resolve(dataReturned)
-        })
-        .catch(() => {
-          this.toastProvider.show('Não foi possível ler os acessos agora. Preciso de internet!');
-          reject(null)
-        })
-      } else {
-        resolve(null)
-      }
-    })
+  async createOperator(cpf: string, email: string) {
+    const endPoint = this.global.API_URL + '/operadores';
+    const obj = {
+      cpf,
+      email,
+    };
+    return await this.postObjURL(obj, endPoint);
   }
 
-  /*
-  getTotalLoad(idEmp: string, codRepErp: string, model: string, readRemote: boolean): Promise<Array<any>> {
-    const idEmp = this.global.getProperty('idEmp')
-    return this.getTotalLoadByEmp(idEmp, codRepErp, model, readRemote)
-  }
-*/
-  getTotalLoadByEmp(idEmp: string, codRepErp: string, model: string, readRemote: boolean): Promise<Array<any>> {
-    return new Promise(async (resolve, reject) => {
-      const online = await this.global.getProperty('online');
-      if (online && readRemote) {
-        const endPoint = this.urlHelperProvider.getURL(idEmp, codRepErp, model, 'GET', '/T/0')
-        this.getObjURL(endPoint)
-        .then((dataReturned) => {
-          resolve(dataReturned)
-        })
-        .catch(() => {
-          reject(null)
-        })
-      } else {
-        // Se estiver offline, retornar null e a rotina chamadora deve tratar isso
-        resolve(null)
-      }
-    });
+  async getTotalLoadByEmp(
+    company: Company,
+    model: string,
+    readRemote: boolean
+  ): Promise<any[]> {
+    if (readRemote) {
+      const endPoint = await this.urlHelperProvider.getURL(
+        company.idEmp,
+        company.codRepErp,
+        model,
+        'GET',
+        '/T/0'
+      );
+      return this.getObjURL(endPoint);
+    }
+    return [];
   }
 
-  getTotalLoadByCharge(idEmp: string, codRepErp: string, model: string, ultCarga): Promise<Array<any>> {
-    return new Promise(async (resolve, reject) => {
-      const online = await this.global.getProperty('online');
-      if (online) {
-        const endPoint = this.urlHelperProvider.getURL(idEmp, codRepErp, model, 'GET', '/T/' + ultCarga)
-        this.getObjURL(endPoint)
-        .then((dataReturned) => {
-          resolve(dataReturned)
-        })
-        .catch(() => {
-          reject(null)
-        })
-      } else {
-        // Se estiver offline, retornar null e a rotina chamadora deve tratar isso
-        resolve(null)
-      }
-    })
+  async getTotalLoadByCharge(
+    company: Company,
+    model: string,
+    ultCarga: number
+  ): Promise<any[]> {
+    const endPoint = await this.urlHelperProvider.getURL(
+      company.idEmp,
+      company.codRepErp,
+      model,
+      'GET',
+      '/T/' + ultCarga
+    );
+    return this.getObjURL(endPoint);
   }
 
-  getPartialLoad(idEmp: string, codRepErp: string, model: string, ultCarga): Promise<Array<any>> {
-    return new Promise((resolve, reject) => {
-      const online = this.global.getProperty('online')
-      if (online) {
-        const endPoint = this.urlHelperProvider.getURL(idEmp, codRepErp, model, 'GET', '/P/' + ultCarga)
-        this.getObjURL(endPoint)
-        .then((dataReturned) => {
-          resolve(dataReturned)
-        })
-        .catch(() => {
-          reject(null)
-        })
-      } else {
-        this.toastProvider.show('Estamos trabalhando offline (sem internet).');
-        resolve(null)
-      }
-    });
+  async getPartialLoad(
+    company: Company,
+    model: string,
+    ultCarga: number
+  ): Promise<any[] | undefined> {
+    const endPoint = await this.urlHelperProvider.getURL(
+      company.idEmp,
+      company.codRepErp,
+      model,
+      'GET',
+      '/P/' + ultCarga
+    );
+    return this.getObjURL(endPoint);
   }
-
-  // Retorna o resultado de uma consulta usando url base do model
-  getByURLBase(idEmp: string, codRepErp: string, model: string): Promise<Array<any>> {
-    return new Promise((resolve, reject) => {
-      const online = this.global.getProperty('online')
-      if (online) {
-        const endPoint = this.urlHelperProvider.getURL(idEmp, codRepErp, model, 'GET', '')
-        this.getObjURL(endPoint)
-        .then((dataReturned) => {
-          resolve(dataReturned)
-        })
-        .catch(() => {
-          reject(null)
-        })
-      } else {
-        this.toastProvider.show('Estamos trabalhando offline (sem internet).');
-        resolve(null)
-      }
-    })
-  }
-
-  getMainItens(idEmp: string, codRepErp: string): Promise<Array<any>> {
-    return new Promise(async (resolve, reject) => {
-      const model = this.global.modelNames.principais_produtos
-      const endPoint = this.urlHelperProvider.getURL(idEmp, codRepErp, model, 'GET', '')
-      this.getObjURL(endPoint)
-      .then((dataReturned) => {
-        resolve(dataReturned)
-      })
-      .catch(() => {
-        reject(null)
-      })
-    });
-  }
-
 
   private getObjURL(url: string): Promise<Array<any>> {
     return new Promise((resolve, reject) => {
-      this.getTokenBearer()
-      .then((tokenBearer) => {
-        const headers = { 'Content-Type': 'application/json' as const, authorization: 'Bearer ' + tokenBearer }
-        this.httpClient.get<Array<any>>(url, { headers }).subscribe(data => {
-          resolve(data);
-        }, error => {
-          console.error(error);
-          reject(error);
-        })
-      })
-    });
-  }
-
-
-
-  getLocal(collection: string): Promise<Array<any>> {
-    return new Promise<Array<any>>((resolve, reject) => {
-      this.customStorageProvider.getLocal(collection)
-      .then((data: Array<any>) => {
-        resolve(data);
-      })
-      .catch((err) => {
-        reject(err);
-      })
-    })
-  }
-
-  saveManyLocal(collection: string, data: Array<any>): Promise<Array<any>> {
-    return new Promise((resolve) => {
-      this.getLocal(collection).then((localData: Array<any>) => {
-
-        if (!localData) {
-          localData = [];
-        }
-
-        const existsData = [];
-
-        data.forEach(element => {
-          existsData.push(localData.find(x => x.uid === element.uid));
-        });
-
-        localData = _.pullAllBy(localData, existsData, 'uid');
-
-        data = _.unionBy(localData, data, 'uid');
-
-        this.customStorageProvider.saveLocal(collection, data)
-        .then((savedData) => {
-          resolve(savedData);
-        });
+      this.getTokenBearer().then((tokenBearer) => {
+        const headers = {
+          'Content-Type': 'application/json' as const,
+          authorization: 'Bearer ' + tokenBearer,
+        };
+        this.httpClient.get<Array<any>>(url, { headers }).subscribe(
+          (data) => {
+            resolve(data);
+          },
+          (error) => {
+            reject(error);
+          }
+        );
       });
     });
   }
 
-  postObj(idEmp: string, codRepErp: string, model: string, obj: any): Promise<any> {
-    const endPoint = this.urlHelperProvider.getURL(idEmp, codRepErp, model, 'POST', '')
-    return this.postObjURL(obj, endPoint)
+  async getTypedObjURL<T>(url: string): Promise<T[]> {
+    const tokenBearer = await this.getTokenBearer();
+    const headers = {
+      'Content-Type': 'application/json' as const,
+      authorization: `Bearer ${tokenBearer}`,
+    };
+    return this.httpClient.get<T[]>(url, { headers }).toPromise();
   }
 
-  private postObjURL(obj: any, url:string) : Promise<any> {
+  // Remover no futuro (pode ser substituida por customStorageProvider.getLocal)
+  async getLocal<T>(collection: string): Promise<T[]> {
+    return this.customStorageProvider.getLocal(collection);
+  }
+
+  // private async saveManyLocal(collection: string, data: any[]): Promise<any[]> {
+  //   return new Promise((resolve) => {
+  //     this.customStorageProvider
+  //       .getLocal(collection)
+  //       .then((localData: Array<any>) => {
+  //         if (!localData) {
+  //           localData = [];
+  //         }
+
+  //         const existsData: _.List<any> | undefined = [];
+
+  //         data.forEach((element) => {
+  //           existsData.push(localData.find((x) => x.uid === element.uid));
+  //         });
+
+  //         localData = _.pullAllBy(localData, existsData, 'uid');
+
+  //         data = _.unionBy(localData, data, 'uid');
+
+  //         this.customStorageProvider
+  //           .saveLocal(collection, data)
+  //           .then((savedData) => {
+  //             resolve(savedData);
+  //           });
+  //       });
+  //   });
+  // }
+
+  async postObj(
+    idEmp: string,
+    codRepErp: string,
+    model: string,
+    obj: any
+  ): Promise<any> {
+    const endPoint = await this.urlHelperProvider.getURL(
+      idEmp,
+      codRepErp,
+      model,
+      'POST',
+      ''
+    );
+    return await this.postObjURL(obj, endPoint);
+  }
+
+  private postObjURL(obj: any, url: string): Promise<any> {
     return new Promise((resolve, reject) => {
-      this.getTokenBearer()
-      .then((tokenBearer) => {
-        const headers = { 'Content-Type': 'application/json' as const, authorization: 'Bearer ' + tokenBearer }
-        this.httpClient.post(url, JSON.stringify(obj), { headers })
-        .subscribe(async data => {
-          resolve(data)
-        }, error => {
-          reject(error)
-        })
-      })
-    })
-  }
-
-//  registerTokenOnBackend( idEmp: string, codRepErp: string,
-  registerTokenOnBackend(tokenData: { uuidDisp: string; tokenApp: string; cpf: string; email: string; }): Promise<any> {
-    // const model = this.global.modelNames.token
-    // const endPoint = this.urlHelperProvider.getURL(idEmp, codRepErp, model, 'POST', '')
-    const endPoint = `${this.global.API_URL}/token`
-    return this.postObjURL(tokenData, endPoint)
-  }
-
-  private getTokenBearer(): Promise<any> {
-    return new Promise((resolve, reject) => {
-      const bearerToken = this.global.getPropertyOrNull('bearerToken')
-      let accessTokenRet = ''
-      if (bearerToken) {
-        const bearerExpiresAt = this.global.getPropertyOrNull('bearerExpiresAt')
-        if (bearerExpiresAt) {
-          const dateTimeNow = new Date()
-          if (bearerExpiresAt > dateTimeNow.toISOString()) {
-            accessTokenRet = bearerToken
+      this.getTokenBearer().then((tokenBearer) => {
+        const headers = {
+          'Content-Type': 'application/json' as const,
+          authorization: 'Bearer ' + tokenBearer,
+        };
+        this.httpClient.post(url, JSON.stringify(obj), { headers }).subscribe(
+          async (data) => {
+            resolve(data);
+          },
+          (error) => {
+            if (error.status === 401) {
+              this.global.setProperty(Properties.BEARER_INFO, '');
+            }
+            reject(error);
           }
-      } else {
-          accessTokenRet = bearerToken
+        );
+      });
+    });
+  }
+
+  private async getTokenBearer(): Promise<string> {
+    const bearerToken = this.global.getProperty(
+      Properties.BEARER_TOKEN
+    ) as string;
+    if (bearerToken) {
+      const bearerExpiresAt = this.global.getProperty(
+        Properties.BEARER_EXPIRES_AT
+      ) as string;
+      if (bearerExpiresAt) {
+        const dateTimeNow = new Date();
+        if (bearerExpiresAt > dateTimeNow.toISOString()) {
+          return bearerToken;
         }
-      }
-
-      if (accessTokenRet) {
-        resolve(accessTokenRet)
       } else {
-        const credentialStr = 'client_id=' + this.global.API_AUTH_CFG.client_id +
-          '&client_secret=' + this.global.API_AUTH_CFG.client_secret +
-          '&grant_type=client_credentials'
-        const headers = { 'Content-Type': 'application/x-www-form-urlencoded' as const }
-        this.httpClient.post(this.global.API_AUTH_CFG.url, credentialStr, { headers })
-        .subscribe((jsonBearer: any) => {
-          const expiresDateTime = new Date();
-          if(jsonBearer.expires_in) {
-            expiresDateTime.setSeconds(expiresDateTime.getSeconds() + jsonBearer.expires_in)
-          }
-          this.global.setProperty('bearerToken', jsonBearer.access_token)
-          this.global.setProperty('bearerExpiresAt', expiresDateTime.toISOString())
-          resolve(jsonBearer.access_token)
-        }, error => {
-          this.global.setProperty('bearerInfo', '')
-          reject(error)
-        })
-
+        return bearerToken;
       }
+    }
+    this.global.setProperty(Properties.BEARER_INFO, '');
 
-    })
+    const credentialStr =
+      'client_id=' +
+      this.global.API_AUTH_CFG.client_id +
+      '&client_secret=' +
+      this.global.API_AUTH_CFG.client_secret +
+      '&grant_type=client_credentials';
+    const headers = {
+      'Content-Type': 'application/x-www-form-urlencoded' as const,
+    };
+    const endPoint = await this.urlHelperProvider.getURL(
+      '',
+      '',
+      ModelNames.token,
+      'POST',
+      ''
+    );
+    const jsonBearer = (await this.httpClient
+      .post(endPoint, credentialStr, { headers })
+      .toPromise()) as OAuth2Token;
+    const expiresDateTime = new Date();
+    if (jsonBearer.expires_in) {
+      expiresDateTime.setSeconds(
+        expiresDateTime.getSeconds() + jsonBearer.expires_in
+      );
+    }
+    this.global.setProperty(Properties.BEARER_TOKEN, jsonBearer.access_token);
+    this.global.setProperty(
+      Properties.BEARER_EXPIRES_AT,
+      expiresDateTime.toISOString()
+    );
+    return jsonBearer.access_token;
   }
-
 }
